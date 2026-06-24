@@ -1,0 +1,56 @@
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+.widget-card {
+  padding: 24px;
+}
+.hover-text {
+  transition: color 0.2s;
+}
+.hover-text:hover {
+  color: var(--accent-primary) !important;
+}
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: rgba(0,0,0,0.03);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--accent-primary);
+}
+.meeting-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: rgba(0,0,0,0.03);
+  border-radius: var(--border-radius-sm);
+}
+.date-block {
+  background: rgba(0,0,0,0.04);
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0,0,0,0.03);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+}
+.icon-bg {
+  background: rgba(245, 158, 11, 0.15);
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
