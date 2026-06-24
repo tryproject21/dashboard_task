@@ -1,4 +1,4 @@
-import { getTasks } from '@/lib/actions';
+import { getTasks } from '@/lib/taskActions';
 import { getFiles } from '@/lib/fileActions';
 import TaskBoard from './TaskBoard';
 

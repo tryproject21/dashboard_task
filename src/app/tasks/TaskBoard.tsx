@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Clock, Trash2, Calendar, MoreVertical, Paperclip, File as FileIcon, X, GripVertical } from 'lucide-react';
-import { addTask, updateTaskStatus, deleteTask } from '@/lib/actions';
+import { addTask, updateTaskStatus, deleteTask } from '@/lib/taskActions';
 import { linkFileToTask } from '@/lib/fileActions';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 

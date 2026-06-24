@@ -7,11 +7,17 @@ export async function initDb() {
       CREATE TABLE IF NOT EXISTS tasks (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         title TEXT NOT NULL,
+        description TEXT,
         status TEXT DEFAULT 'todo',
         priority TEXT DEFAULT 'medium',
         deadline TEXT,
+        "completedAt" TIMESTAMP,
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+      
+      -- Attempt to add columns if table already exists
+      ALTER TABLE tasks ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE tasks ADD COLUMN IF NOT EXISTS "completedAt" TIMESTAMP;
     `;
     
     await sql`

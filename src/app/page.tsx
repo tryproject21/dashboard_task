@@ -1,4 +1,4 @@
-import { getTasks } from '@/lib/actions';
+import { getTasks } from '@/lib/taskActions';
 import { getMeetings } from '@/lib/meetingActions';
 import { getFiles } from '@/lib/fileActions';
 import { getNotes } from '@/lib/noteActions';
