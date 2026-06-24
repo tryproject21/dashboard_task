@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { sql } from '@/lib/db';
 
 export async function GET() {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const tasksStmt = db.prepare("SELECT * FROM tasks WHERE status != 'done' AND deadline IS NOT NULL");
-  const tasks = tasksStmt.all();
+  let tasks: any[] = [];
+  let meetings: any[] = [];
 
-  const meetingsStmt = db.prepare('SELECT * FROM meetings');
-  const meetings = meetingsStmt.all();
+  try {
+    const tasksRes = await sql`SELECT * FROM tasks WHERE status != 'done' AND deadline IS NOT NULL`;
+    tasks = tasksRes.rows;
 
-  const notifications = [];
+    const meetingsRes = await sql`SELECT * FROM meetings`;
+    meetings = meetingsRes.rows;
+  } catch (e) {
+    console.error(e);
+  }
+
+  const notifications: any[] = [];
 
   tasks.forEach((t: any) => {
     const dDate = new Date(t.deadline);

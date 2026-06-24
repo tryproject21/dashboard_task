@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import db from '@/lib/db';
+import { sql } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,18 +24,15 @@ export async function POST(req: NextRequest) {
     const filePath = path.join(uploadDir, uniqueName);
     fs.writeFileSync(filePath, buffer);
 
-    const id = crypto.randomUUID();
     const dbPath = `/uploads/${uniqueName}`;
     const parentId = formData.get('parentId') as string | null;
 
-    const stmt = db.prepare(`
-      INSERT INTO files (id, name, path, size, type, taskId, parentId)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
+    await sql`
+      INSERT INTO files (name, path, size, type, "taskId", "parentId")
+      VALUES (${file.name}, ${dbPath}, ${file.size}, ${file.type}, ${taskId || null}, ${parentId || null})
+    `;
 
-    stmt.run(id, file.name, dbPath, file.size, file.type, taskId || null, parentId || null);
-
-    return NextResponse.json({ success: true, id, path: dbPath });
+    return NextResponse.json({ success: true, path: dbPath });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });

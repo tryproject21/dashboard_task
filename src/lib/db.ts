@@ -31,6 +31,19 @@ export async function initDb() {
         "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS files (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        path TEXT NOT NULL,
+        size INTEGER,
+        type TEXT,
+        "taskId" TEXT,
+        "parentId" TEXT,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
     
     console.log("Postgres database initialized successfully.");
   } catch (error) {
