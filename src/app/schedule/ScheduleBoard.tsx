@@ -162,69 +162,120 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
 
       <style jsx>{`
         .calendar-container {
-          padding: 24px;
+          padding: 0;
+          background: #ffffff;
+          border-radius: 12px;
+          border: 1px solid var(--border-color);
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
+        
+        /* Dark mode overrides */
+        @media (prefers-color-scheme: dark) {
+          .calendar-container {
+            background: #1e1e1e;
+            border-color: #333;
+          }
+        }
+
+        .calendar-header {
+          padding: 20px 24px;
+          border-bottom: 1px solid var(--border-color);
+        }
+
         .calendar-grid {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          gap: 8px;
+          background: var(--border-color);
+          gap: 1px; /* This creates the thin grid lines like Google Calendar */
+          border-bottom: 1px solid var(--border-color);
         }
+
         .calendar-day-header {
           text-align: center;
-          font-weight: 600;
+          font-weight: 500;
           color: var(--text-secondary);
-          padding: 8px 0;
-          font-size: 0.9rem;
+          padding: 12px 0;
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          background: var(--bg-primary);
         }
+
         .calendar-cell {
-          background: rgba(0,0,0,0.02);
-          border: 1px solid var(--border-color);
-          border-radius: 8px;
-          min-height: 120px;
+          background: var(--bg-primary);
+          min-height: 140px;
           padding: 8px;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: background 0.1s;
           display: flex;
           flex-direction: column;
         }
+
         .calendar-cell:not(.empty):hover {
-          background: rgba(0,0,0,0.05);
+          background: rgba(0, 0, 0, 0.02);
         }
+
         .calendar-cell.empty {
-          background: transparent;
-          border: none;
+          background: var(--bg-secondary);
+          opacity: 0.5;
           cursor: default;
         }
-        .calendar-cell.today {
-          background: rgba(59, 130, 246, 0.05);
-          border-color: var(--accent-primary);
+
+        .cell-header {
+          text-align: center;
+          margin-bottom: 8px;
         }
-        .calendar-cell.today .day-number {
-          background: var(--accent-primary);
-          color: white;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
+
+        .day-number {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-        }
-        .cell-header {
-          text-align: right;
-          margin-bottom: 8px;
-          font-size: 0.9rem;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          font-size: 0.85rem;
+          font-weight: 500;
           color: var(--text-secondary);
+          transition: all 0.2s;
         }
+
+        .calendar-cell:not(.empty):hover .day-number {
+          background: rgba(0,0,0,0.05);
+          color: var(--text-primary);
+        }
+
+        .calendar-cell.today .day-number {
+          background: #1a73e8;
+          color: white;
+          font-weight: 600;
+        }
+
+        .calendar-cell.today .day-number:hover {
+          background: #1557b0;
+        }
+
         .cell-events {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 3px;
           flex: 1;
           overflow-y: auto;
+          scrollbar-width: thin;
         }
+        
+        .cell-events::-webkit-scrollbar {
+          width: 4px;
+        }
+        .cell-events::-webkit-scrollbar-thumb {
+          background: rgba(0,0,0,0.1);
+          border-radius: 4px;
+        }
+
         .event-badge {
-          background: var(--bg-secondary);
-          color: var(--text-primary);
+          background: #e8f0fe; /* Google Calendar Blue Light */
+          color: #1a73e8;     /* Google Calendar Blue Text */
           padding: 4px 8px;
           border-radius: 4px;
           font-size: 0.75rem;
@@ -232,38 +283,67 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
           align-items: center;
           gap: 6px;
           position: relative;
-          border-left: 3px solid var(--accent-primary);
+          font-weight: 500;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+          transition: filter 0.15s;
         }
+        
+        @media (prefers-color-scheme: dark) {
+          .event-badge {
+            background: rgba(26, 115, 232, 0.2);
+            color: #8ab4f8;
+          }
+        }
+
         .event-badge:hover {
-          background: var(--accent-secondary);
+          filter: brightness(0.95);
+          cursor: pointer;
         }
+
+        .event-badge:before {
+          content: '';
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          background: #1a73e8;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          .event-badge:before {
+            background: #8ab4f8;
+          }
+        }
+
         .event-time {
-          font-weight: 600;
           opacity: 0.8;
           white-space: nowrap;
+          font-size: 0.7rem;
         }
+
         .event-title {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           flex: 1;
         }
+
         .delete-btn {
           background: transparent;
           border: none;
-          color: var(--danger);
+          color: inherit;
+          opacity: 0.5;
           cursor: pointer;
-          opacity: 0;
-          transition: opacity 0.2s;
-          padding: 4px;
+          padding: 2px;
           display: flex;
           align-items: center;
           border-radius: 4px;
         }
+
         .delete-btn:hover {
-          background: rgba(255, 0, 0, 0.1);
-        }
-        .event-badge:hover .delete-btn {
+          background: rgba(0, 0, 0, 0.1);
+          color: var(--danger);
           opacity: 1;
         }
       `}</style>
