@@ -13,18 +13,18 @@ export async function getNotes() {
   }
 }
 
-export async function saveNote(id: string | null, title: string, content: string) {
+export async function saveNote(id: string | null, title: string, content: string, meeting_id?: string | null) {
   try {
     if (id) {
       await sql`
         UPDATE notes 
-        SET title = ${title}, content = ${content}, "updatedAt" = CURRENT_TIMESTAMP 
+        SET title = ${title}, content = ${content}, "updatedAt" = CURRENT_TIMESTAMP, meeting_id = ${meeting_id || null}
         WHERE id = ${id}
       `;
     } else {
       await sql`
-        INSERT INTO notes (title, content) 
-        VALUES (${title}, ${content})
+        INSERT INTO notes (title, content, meeting_id) 
+        VALUES (${title}, ${content}, ${meeting_id || null})
       `;
     }
     revalidatePath('/notes');

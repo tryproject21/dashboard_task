@@ -22,12 +22,16 @@ export default function NotificationBell() {
     const fetchNotifications = async () => {
       const res = await fetch('/api/notifications');
       const data = await res.json();
-      setNotifications(data.notifications);
-      if (data.notifications.length > 0) {
+      setNotifications(data.notifications || []);
+      if (data.notifications && data.notifications.length > 0) {
         setHasUnread(true);
       }
     };
+    
     fetchNotifications();
+    const intervalId = setInterval(fetchNotifications, 60000); // Poll every 1 minute
+
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {

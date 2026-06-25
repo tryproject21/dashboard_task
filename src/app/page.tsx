@@ -41,6 +41,23 @@ export default async function Dashboard() {
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Here is your overview for today.</p>
       </div>
 
+      <div className="dashboard-grid mb-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Pending Tasks</span>
+          <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--danger)' }}>{urgentTasks.length}</span>
+        </div>
+        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Meetings Today</span>
+          <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--accent-primary)' }}>{upcomingMeetings.length}</span>
+        </div>
+        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Completion Rate (7d)</span>
+          <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success)' }}>
+            {tasks.length > 0 ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100) : 0}%
+          </span>
+        </div>
+      </div>
+
       <div className="dashboard-grid">
         {/* Analytics Widget */}
         <div className="glass-panel widget-card" style={{ gridColumn: '1 / -1' }}>

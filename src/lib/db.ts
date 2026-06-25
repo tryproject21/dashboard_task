@@ -34,9 +34,12 @@ export async function initDb() {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         title TEXT NOT NULL,
         content TEXT,
-        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        meeting_id VARCHAR(255)
       );
     `;
+
+    try { await sql`ALTER TABLE notes ADD COLUMN IF NOT EXISTS meeting_id VARCHAR(255)`; } catch (e) {}
 
     await sql`
       CREATE TABLE IF NOT EXISTS files (

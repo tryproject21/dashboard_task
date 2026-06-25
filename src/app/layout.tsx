@@ -9,6 +9,8 @@ import NotificationBell from "@/components/NotificationBell";
 import AIAssistant from "@/components/AIAssistant";
 import Providers from "@/components/Providers";
 
+import PomodoroWidget from "@/components/PomodoroWidget";
+
 export const metadata: Metadata = {
   title: "ProDash - Professional Self-Management",
   description: "Dashboard for task management, file directory, and schedule.",
@@ -33,6 +35,7 @@ export default function RootLayout({
             <CommandPalette />
             <NotificationBell />
             <AIAssistant />
+            <PomodoroWidget />
           </ThemeProvider>
         </Providers>
       </body>

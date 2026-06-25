@@ -10,22 +10,32 @@ type Note = {
   title: string;
   content: string;
   updatedAt: string;
+  meeting_id?: string;
 };
 
-export default function NotesBoard({ initialNotes }: { initialNotes: Note[] }) {
+type Meeting = {
+  id: string;
+  title: string;
+  date: string;
+};
+
+export default function NotesBoard({ initialNotes, meetings = [] }: { initialNotes: Note[], meetings?: Meeting[] }) {
   const [notes, setNotes] = useState(initialNotes);
   const [activeNote, setActiveNote] = useState<Note | null>(notes.length > 0 ? notes[0] : null);
   const [title, setTitle] = useState(activeNote?.title || '');
   const [content, setContent] = useState(activeNote?.content || '');
+  const [meetingId, setMeetingId] = useState(activeNote?.meeting_id || '');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (activeNote) {
       setTitle(activeNote.title);
       setContent(activeNote.content);
+      setMeetingId(activeNote.meeting_id || '');
     } else {
       setTitle('');
       setContent('');
+      setMeetingId('');
     }
   }, [activeNote]);
 
@@ -33,12 +43,13 @@ export default function NotesBoard({ initialNotes }: { initialNotes: Note[] }) {
     setActiveNote(null);
     setTitle('');
     setContent('');
+    setMeetingId('');
   };
 
   const handleSave = async () => {
     if (!title.trim() && !content.trim()) return;
     setIsSaving(true);
-    await saveNote(activeNote?.id || null, title || 'Untitled Note', content);
+    await saveNote(activeNote?.id || null, title || 'Untitled Note', content, meetingId || null);
     window.location.reload();
   };
 
@@ -73,14 +84,27 @@ export default function NotesBoard({ initialNotes }: { initialNotes: Note[] }) {
 
       <div className="notes-editor glass-panel">
         <div className="editor-header flex-between">
-          <input 
-            type="text" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            placeholder="Note Title" 
-            className="editor-title-input"
-          />
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <input 
+              type="text" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              placeholder="Note Title" 
+              className="editor-title-input"
+            />
+            <select 
+              value={meetingId} 
+              onChange={(e) => setMeetingId(e.target.value)}
+              className="input-field"
+              style={{ width: 'fit-content', padding: '4px 8px', fontSize: '0.85rem' }}
+            >
+              <option value="">No Meeting Link</option>
+              {meetings.map(m => (
+                <option key={m.id} value={m.id}>Linked to: {m.title}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignSelf: 'flex-start' }}>
             {activeNote && (
               <button className="btn-icon" style={{ color: 'var(--danger)' }} onClick={() => handleDelete(activeNote.id)}>
                 <Trash2 size={18} />
