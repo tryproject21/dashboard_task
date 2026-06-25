@@ -3,7 +3,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Download, Loader2, UploadCloud, X, Calendar, Type, BookOpen, MapPin } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
 import { compressImage } from '@/lib/imageCompressor';
 
 type Meeting = {
@@ -136,6 +135,7 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
     };
 
     try {
+      const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf()
         .set(opt)
         .from(element)
