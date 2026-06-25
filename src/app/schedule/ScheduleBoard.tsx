@@ -163,20 +163,12 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
       <style jsx>{`
         .calendar-container {
           padding: 0;
-          background: #ffffff;
+          background: var(--bg-secondary);
           border-radius: 12px;
           border: 1px solid var(--border-color);
           overflow: hidden;
           box-shadow: 0 4px 20px rgba(0,0,0,0.03);
           font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-        
-        /* Dark mode overrides */
-        @media (prefers-color-scheme: dark) {
-          .calendar-container {
-            background: #1e1e1e;
-            border-color: #333;
-          }
         }
 
         .calendar-header {
@@ -274,8 +266,8 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
         }
 
         .event-badge {
-          background: #e8f0fe; /* Google Calendar Blue Light */
-          color: #1a73e8;     /* Google Calendar Blue Text */
+          background: var(--bg-secondary);
+          color: var(--accent-primary);
           padding: 4px 8px;
           border-radius: 4px;
           font-size: 0.75rem;
@@ -286,13 +278,7 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
           font-weight: 500;
           box-shadow: 0 1px 2px rgba(0,0,0,0.02);
           transition: filter 0.15s;
-        }
-        
-        @media (prefers-color-scheme: dark) {
-          .event-badge {
-            background: rgba(26, 115, 232, 0.2);
-            color: #8ab4f8;
-          }
+          border: 1px solid var(--accent-primary);
         }
 
         .event-badge:hover {
@@ -305,15 +291,9 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
           display: inline-block;
           width: 6px;
           height: 6px;
-          background: #1a73e8;
+          background: var(--accent-primary);
           border-radius: 50%;
           flex-shrink: 0;
-        }
-        
-        @media (prefers-color-scheme: dark) {
-          .event-badge:before {
-            background: #8ab4f8;
-          }
         }
 
         .event-time {
