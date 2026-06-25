@@ -213,7 +213,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
               <button className="btn btn-secondary" onClick={handleEdit}>
                 ✏️ Edit Meeting Details
               </button>
-              {actionMeeting.link && (
+              {actionMeeting.link && actionMeeting.link.startsWith('http') && (
                 <a href={actionMeeting.link} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
                   🔗 Join Meeting
                 </a>

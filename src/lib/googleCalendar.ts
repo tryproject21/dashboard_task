@@ -36,7 +36,7 @@ export async function getGoogleEvents() {
       id: e.id,
       title: e.summary || 'Untitled',
       date: e.start?.dateTime || e.start?.date,
-      link: e.htmlLink || e.location || ''
+      link: e.location || e.hangoutLink || ''
     }));
   } catch (error) {
     console.error("GCal fetch error", error);
