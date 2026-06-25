@@ -41,21 +41,43 @@ export default async function Dashboard() {
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Here is your overview for today.</p>
       </div>
 
-      <div className="dashboard-grid mb-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Pending Tasks</span>
-          <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--danger)' }}>{urgentTasks.length}</span>
+      <div className="dashboard-grid mb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
+        
+        {/* Card 1: Pending Tasks */}
+        <div className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(0,0,0,0) 100%)' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239, 68, 68, 0.15)', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckSquare size={28} />
+          </div>
+          <div>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500, letterSpacing: '0.5px' }}>PENDING TASKS</p>
+            <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>{urgentTasks.length}</h2>
+          </div>
         </div>
-        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Meetings Today</span>
-          <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--accent-primary)' }}>{upcomingMeetings.length}</span>
+
+        {/* Card 2: Meetings Today */}
+        <div className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', background: 'linear-gradient(135deg, rgba(26, 115, 232, 0.05) 0%, rgba(0,0,0,0) 100%)' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(26, 115, 232, 0.15)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Calendar size={28} />
+          </div>
+          <div>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500, letterSpacing: '0.5px' }}>MEETINGS TODAY</p>
+            <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>{upcomingMeetings.length}</h2>
+          </div>
         </div>
-        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Completion Rate (7d)</span>
-          <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success)' }}>
-            {tasks.length > 0 ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100) : 0}%
-          </span>
+
+        {/* Card 3: Completion Rate */}
+        <div className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(0,0,0,0) 100%)' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <BarChart2 size={28} />
+          </div>
+          <div>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500, letterSpacing: '0.5px' }}>COMPLETION (7D)</p>
+            <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              {tasks.length > 0 ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100) : 0}%
+            </h2>
+          </div>
         </div>
+
       </div>
 
       <div className="dashboard-grid">
