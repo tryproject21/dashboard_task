@@ -28,10 +28,12 @@ export async function addMeeting(formData: FormData) {
   const title = formData.get('title') as string;
   const date = formData.get('date') as string;
   const link = formData.get('link') as string;
+  const timeZone = formData.get('timeZone') as string;
 
   const session = await getServerSession(authOptions);
   if (session) {
-    await createGoogleEvent(title, date, link);
+    const { createGoogleEvent } = await import('./googleCalendar');
+    await createGoogleEvent(title, date, link, timeZone);
   } else {
     try {
       await sql`INSERT INTO meetings (title, date, link) VALUES (${title}, ${date}, ${link})`;
@@ -48,11 +50,12 @@ export async function editMeeting(id: string, formData: FormData) {
   const title = formData.get('title') as string;
   const date = formData.get('date') as string;
   const link = formData.get('link') as string;
+  const timeZone = formData.get('timeZone') as string;
 
   const session = await getServerSession(authOptions);
   if (session) {
     const { updateGoogleEvent } = await import('./googleCalendar');
-    await updateGoogleEvent(id, title, date, link);
+    await updateGoogleEvent(id, title, date, link, timeZone);
   } else {
     try {
       await sql`UPDATE meetings SET title = ${title}, date = ${date}, link = ${link} WHERE id = ${id}`;

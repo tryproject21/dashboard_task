@@ -129,6 +129,12 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
           <div className="modal-content">
             <h2 className="mb-4">{editingMeeting ? 'Edit Meeting' : 'Schedule a Meeting'}</h2>
             <form action={async (formData) => {
+              const localDate = formData.get('date') as string;
+              if (localDate && !localDate.includes('Z')) {
+                formData.set('date', new Date(localDate).toISOString());
+              }
+              formData.set('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+
               if (editingMeeting) {
                 await editMeeting(editingMeeting.id, formData);
               } else {

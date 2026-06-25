@@ -44,7 +44,7 @@ export async function getGoogleEvents() {
   }
 }
 
-export async function createGoogleEvent(title: string, date: string, link: string) {
+export async function createGoogleEvent(title: string, date: string, link: string, timeZone: string = 'UTC') {
   const calendar = await getGoogleCalendarClient();
   if (!calendar) return null;
 
@@ -58,11 +58,11 @@ export async function createGoogleEvent(title: string, date: string, link: strin
       location: link,
       start: {
         dateTime: startDate.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: timeZone,
       },
       end: {
         dateTime: endDate.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: timeZone,
       },
     };
 
@@ -78,7 +78,7 @@ export async function createGoogleEvent(title: string, date: string, link: strin
   }
 }
 
-export async function updateGoogleEvent(id: string, title: string, date: string, link: string) {
+export async function updateGoogleEvent(id: string, title: string, date: string, link: string, timeZone: string = 'UTC') {
   const calendar = await getGoogleCalendarClient();
   if (!calendar) return null;
 
@@ -92,11 +92,11 @@ export async function updateGoogleEvent(id: string, title: string, date: string,
       location: link,
       start: {
         dateTime: startDate.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: timeZone,
       },
       end: {
         dateTime: endDate.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone: timeZone,
       },
     };
 
