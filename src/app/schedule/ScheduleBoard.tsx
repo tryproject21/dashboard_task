@@ -21,6 +21,8 @@ type Task = {
   priority: string;
 };
 
+type ViewMode = 'day' | 'month' | 'year';
+
 export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { initialMeetings: Meeting[], initialTasks?: Task[] }) {
   const router = useRouter();
   const [meetings, setMeetings] = useState(initialMeetings);
@@ -29,11 +31,12 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
   const [actionMeeting, setActionMeeting] = useState<Meeting | null>(null);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if(confirm("Are you sure you want to delete this meeting?")) {
+    if (confirm("Are you sure you want to delete this meeting?")) {
       setMeetings(meetings.filter(m => m.id !== id));
       await deleteMeeting(id);
     }
@@ -42,29 +45,29 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
   const handleMeetingClick = (meeting: Meeting, e: React.MouseEvent) => {
     e.stopPropagation();
     setActionMeeting(meeting);
-  }
+  };
 
   const handleEdit = () => {
     setEditingMeeting(actionMeeting);
     setActionMeeting(null);
     setSelectedDate('');
     setIsModalOpen(true);
-  }
+  };
 
   const handleDayClick = (dateStr: string) => {
     setEditingMeeting(null);
     setSelectedDate(dateStr);
     setIsModalOpen(true);
-  }
+  };
 
   const handleTaskClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     router.push('/tasks');
-  }
+  };
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('meeting_id', id);
-  }
+  };
 
   const handleDrop = async (e: React.DragEvent, dateStr: string) => {
     e.preventDefault();
@@ -80,68 +83,47 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
       return m;
     }));
     await updateMeetingDate(meetingId, dateStr);
-  }
+  };
 
-  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); }
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); };
 
-  // Calendar logic
-  const year = currentMonth.getFullYear();
-  const month = currentMonth.getMonth();
+  // ============= DATE HELPERS =============
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const day = currentDate.getDate();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
-  
-  const goPrev = () => setCurrentMonth(new Date(year, month - 1, 1));
-  const goNext = () => setCurrentMonth(new Date(year, month + 1, 1));
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const monthShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const dayHeaders = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
-  // Build full 6-row grid (42 cells) like Google Calendar
-  const buildCalendarCells = () => {
-    const cells: { day: number; month: number; year: number; isCurrentMonth: boolean; }[] = [];
-
-    // Previous month fill
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      const d = prevMonthDays - firstDayOfMonth + 1 + i;
-      const m = month === 0 ? 11 : month - 1;
-      const y = month === 0 ? year - 1 : year;
-      cells.push({ day: d, month: m, year: y, isCurrentMonth: false });
-    }
-    // Current month
-    for (let d = 1; d <= daysInMonth; d++) {
-      cells.push({ day: d, month, year, isCurrentMonth: true });
-    }
-    // Next month fill (ensure we have at least 5 rows = 35 cells, or 6 rows = 42)
-    const totalRows = cells.length > 35 ? 6 : Math.max(5, Math.ceil(cells.length / 7));
-    const totalCells = totalRows * 7;
-    let nextDay = 1;
-    while (cells.length < totalCells) {
-      const m = month === 11 ? 0 : month + 1;
-      const y = month === 11 ? year + 1 : year;
-      cells.push({ day: nextDay++, month: m, year: y, isCurrentMonth: false });
-    }
-    return cells;
-  };
-
-  const calendarCells = buildCalendarCells();
   const today = new Date();
 
-  const formatDateLabel = (cell: { day: number; month: number; year: number; isCurrentMonth: boolean }) => {
-    // Show "Jun 1", "Jul 1" etc for the 1st of any month
-    if (cell.day === 1) {
-      return `${monthShort[cell.month]} ${cell.day}`;
+  // Navigation
+  const goToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const goPrev = () => {
+    if (viewMode === 'day') setCurrentDate(new Date(year, month, day - 1));
+    else if (viewMode === 'month') setCurrentDate(new Date(year, month - 1, 1));
+    else setCurrentDate(new Date(year - 1, month, 1));
+  };
+
+  const goNext = () => {
+    if (viewMode === 'day') setCurrentDate(new Date(year, month, day + 1));
+    else if (viewMode === 'month') setCurrentDate(new Date(year, month + 1, 1));
+    else setCurrentDate(new Date(year + 1, month, 1));
+  };
+
+  // Title for topbar
+  const getTitle = () => {
+    if (viewMode === 'day') {
+      return `${monthNames[month]} ${day}, ${year}`;
     }
-    return `${cell.day}`;
-  };
-
-  const getDateStr = (cell: { day: number; month: number; year: number }) => {
-    return `${cell.year}-${String(cell.month + 1).padStart(2, '0')}-${String(cell.day).padStart(2, '0')}`;
-  };
-
-  const isToday = (cell: { day: number; month: number; year: number }) => {
-    return today.getFullYear() === cell.year && today.getMonth() === cell.month && today.getDate() === cell.day;
+    if (viewMode === 'year') return `${year}`;
+    return `${monthNames[month]} ${year}`;
   };
 
   const formatTime = (dateStr: string) => {
@@ -157,100 +139,92 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
   const getTaskColor = (priority: string) => {
     if (priority === 'high') return '#d93025';
     if (priority === 'medium') return '#f4511e';
-    return '#039be5'; // like Google Calendar Tasks teal
+    return '#039be5';
   };
 
-  return (
-    <div className="gcal-root">
-      {/* === TOP BAR === */}
-      <div className="gcal-topbar">
-        <div className="gcal-topbar-left">
-          <button className="gcal-today-btn" onClick={() => setCurrentMonth(new Date())}>
-            Today
-          </button>
-          <button className="gcal-nav-btn" onClick={goPrev}><ChevronLeft size={20} /></button>
-          <button className="gcal-nav-btn" onClick={goNext}><ChevronRight size={20} /></button>
-          <span className="gcal-month-title">{monthNames[month]} {year}</span>
-        </div>
-        <div className="gcal-topbar-right">
-          <a href="/api/calendar/feed" download className="gcal-today-btn" style={{ textDecoration: 'none' }}>
-            Export .ics
-          </a>
-          <button className="gcal-create-btn" onClick={() => { setEditingMeeting(null); setSelectedDate(''); setIsModalOpen(true); }}>
-            <Plus size={20} strokeWidth={2.5} />
-            <span>Create</span>
-          </button>
-        </div>
-      </div>
+  const getDateStr = (y: number, m: number, d: number) =>
+    `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-      {/* === CALENDAR GRID === */}
+  const isSameDay = (y: number, m: number, d: number) =>
+    today.getFullYear() === y && today.getMonth() === m && today.getDate() === d;
+
+  // ============= MONTH VIEW =============
+  const buildMonthCells = () => {
+    const cells: { day: number; month: number; year: number; isCurrentMonth: boolean }[] = [];
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      const d = prevMonthDays - firstDayOfMonth + 1 + i;
+      const m = month === 0 ? 11 : month - 1;
+      const y = month === 0 ? year - 1 : year;
+      cells.push({ day: d, month: m, year: y, isCurrentMonth: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ day: d, month, year, isCurrentMonth: true });
+    }
+    const totalRows = cells.length > 35 ? 6 : 5;
+    const totalCells = totalRows * 7;
+    let nextDay = 1;
+    while (cells.length < totalCells) {
+      const m = month === 11 ? 0 : month + 1;
+      const y = month === 11 ? year + 1 : year;
+      cells.push({ day: nextDay++, month: m, year: y, isCurrentMonth: false });
+    }
+    return cells;
+  };
+
+  const renderMonthView = () => {
+    const cells = buildMonthCells();
+    return (
       <div className="gcal-grid-wrapper">
-        <div className="gcal-grid">
-          {/* Day headers */}
+        <div className="gcal-grid gcal-grid-month">
           {dayHeaders.map(dh => (
             <div key={dh} className="gcal-day-header">{dh}</div>
           ))}
-
-          {/* Calendar cells */}
-          {calendarCells.map((cell, idx) => {
-            const dateStr = getDateStr(cell);
-            const cellIsToday = isToday(cell);
-
+          {cells.map((cell, idx) => {
+            const dateStr = getDateStr(cell.year, cell.month, cell.day);
+            const cellIsToday = isSameDay(cell.year, cell.month, cell.day);
             const dayMeetings = meetings.filter(m => {
               const mDate = new Date(m.date);
               return mDate.getFullYear() === cell.year && mDate.getMonth() === cell.month && mDate.getDate() === cell.day;
             }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
             const dayTasks = tasks.filter(t => {
               if (!t.deadline) return false;
               const tDate = new Date(t.deadline);
               return tDate.getFullYear() === cell.year && tDate.getMonth() === cell.month && tDate.getDate() === cell.day;
             });
 
+            const label = cell.day === 1 ? `${monthShort[cell.month]} ${cell.day}` : `${cell.day}`;
+
             return (
-              <div
-                key={idx}
+              <div key={idx}
                 className={`gcal-cell ${!cell.isCurrentMonth ? 'other-month' : ''} ${cellIsToday ? 'today' : ''}`}
                 onClick={() => handleDayClick(dateStr)}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, dateStr)}
               >
                 <div className="gcal-cell-date">
-                  <span className={`gcal-date-num ${cellIsToday ? 'today-circle' : ''}`}>
-                    {formatDateLabel(cell)}
-                  </span>
+                  <span
+                    className={`gcal-date-num ${cellIsToday ? 'today-circle' : ''}`}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentDate(new Date(cell.year, cell.month, cell.day));
+                      setViewMode('day');
+                    }}
+                  >{label}</span>
                 </div>
                 <div className="gcal-cell-events">
                   {dayMeetings.map(m => (
-                    <div
-                      key={m.id}
-                      className="gcal-event-timed"
-                      onClick={(e) => handleMeetingClick(m, e)}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, m.id)}
-                    >
+                    <div key={m.id} className="gcal-event-timed" onClick={(e) => handleMeetingClick(m, e)} draggable onDragStart={(e) => handleDragStart(e, m.id)}>
                       <span className="gcal-event-dot"></span>
                       <span className="gcal-event-time">{formatTime(m.date)}</span>
                       <span className="gcal-event-label">{m.title}</span>
-                      <button type="button" className="gcal-del-btn" onClick={(e) => handleDelete(m.id, e)}>
-                        <Trash2 size={11} />
-                      </button>
+                      <button type="button" className="gcal-del-btn" onClick={(e) => handleDelete(m.id, e)}><Trash2 size={11} /></button>
                     </div>
                   ))}
                   {dayTasks.map(t => (
-                    <div
-                      key={`task-${t.id}`}
-                      className="gcal-event-chip"
-                      onClick={handleTaskClick}
-                      style={{
-                        backgroundColor: getTaskColor(t.priority),
-                        opacity: t.status === 'done' ? 0.55 : 1,
-                      }}
-                    >
+                    <div key={`task-${t.id}`} className="gcal-event-chip" onClick={handleTaskClick}
+                      style={{ backgroundColor: getTaskColor(t.priority), opacity: t.status === 'done' ? 0.55 : 1 }}>
                       <Circle size={12} strokeWidth={2} style={{ flexShrink: 0 }} />
-                      <span className="gcal-chip-label" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>
-                        {t.title}
-                      </span>
+                      <span className="gcal-chip-label" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
                     </div>
                   ))}
                 </div>
@@ -259,8 +233,158 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           })}
         </div>
       </div>
+    );
+  };
 
-      {/* === ACTION MODAL === */}
+  // ============= DAY VIEW =============
+  const renderDayView = () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const dateStr = getDateStr(year, month, day);
+    const dayMeetings = meetings.filter(m => {
+      const mDate = new Date(m.date);
+      return mDate.getFullYear() === year && mDate.getMonth() === month && mDate.getDate() === day;
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const dayTasks = tasks.filter(t => {
+      if (!t.deadline) return false;
+      const tDate = new Date(t.deadline);
+      return tDate.getFullYear() === year && tDate.getMonth() === month && tDate.getDate() === day;
+    });
+
+    const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+    const isCurrentDay = isSameDay(year, month, day);
+
+    return (
+      <div className="gcal-day-wrapper">
+        {/* Day column header */}
+        <div className="gcal-day-col-header">
+          <span className="gcal-day-col-name" style={{ color: isCurrentDay ? '#1a73e8' : '#70757a' }}>{dayName}</span>
+          <span className={`gcal-day-col-num ${isCurrentDay ? 'today-circle-lg' : ''}`}>{day}</span>
+        </div>
+        {/* All-day section */}
+        {(dayTasks.length > 0) && (
+          <div className="gcal-allday-section">
+            {dayTasks.map(t => (
+              <div key={`task-${t.id}`} className="gcal-event-chip" onClick={handleTaskClick}
+                style={{ backgroundColor: getTaskColor(t.priority), opacity: t.status === 'done' ? 0.55 : 1 }}>
+                <Circle size={12} strokeWidth={2} style={{ flexShrink: 0 }} />
+                <span className="gcal-chip-label" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Hourly grid */}
+        <div className="gcal-hours-scroll">
+          <div className="gcal-hours-grid">
+            {hours.map(h => {
+              const label = h === 0 ? '' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+              const hourMeetings = dayMeetings.filter(m => new Date(m.date).getHours() === h);
+              return (
+                <div key={h} className="gcal-hour-row">
+                  <div className="gcal-hour-label">{label}</div>
+                  <div className="gcal-hour-cell" onClick={() => handleDayClick(dateStr)}>
+                    {hourMeetings.map(m => (
+                      <div key={m.id} className="gcal-hour-event" onClick={(e) => handleMeetingClick(m, e)}>
+                        <span className="gcal-hour-event-title">{m.title}</span>
+                        <span className="gcal-hour-event-time">{formatTime(m.date)}</span>
+                      </div>
+                    ))}
+                    {/* Current time indicator */}
+                    {isCurrentDay && today.getHours() === h && (
+                      <div className="gcal-now-line" style={{ top: `${(today.getMinutes() / 60) * 100}%` }}>
+                        <div className="gcal-now-dot"></div>
+                        <div className="gcal-now-rule"></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ============= YEAR VIEW =============
+  const renderYearView = () => {
+    return (
+      <div className="gcal-year-wrapper">
+        {Array.from({ length: 12 }, (_, mi) => {
+          const firstDay = new Date(year, mi, 1).getDay();
+          const totalDays = new Date(year, mi + 1, 0).getDate();
+          return (
+            <div key={mi} className="gcal-year-month"
+              onClick={() => { setCurrentDate(new Date(year, mi, 1)); setViewMode('month'); }}>
+              <div className="gcal-year-month-title">{monthShort[mi]}</div>
+              <div className="gcal-year-mini-grid">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                  <div key={`hdr-${i}`} className="gcal-mini-hdr">{d}</div>
+                ))}
+                {Array.from({ length: firstDay }, (_, i) => (
+                  <div key={`emp-${i}`} className="gcal-mini-cell"></div>
+                ))}
+                {Array.from({ length: totalDays }, (_, i) => {
+                  const d = i + 1;
+                  const isT = isSameDay(year, mi, d);
+                  const hasMeeting = meetings.some(m => {
+                    const mDate = new Date(m.date);
+                    return mDate.getFullYear() === year && mDate.getMonth() === mi && mDate.getDate() === d;
+                  });
+                  const hasTask = tasks.some(t => {
+                    if (!t.deadline) return false;
+                    const tDate = new Date(t.deadline);
+                    return tDate.getFullYear() === year && tDate.getMonth() === mi && tDate.getDate() === d;
+                  });
+                  return (
+                    <div key={d}
+                      className={`gcal-mini-cell ${isT ? 'mini-today' : ''} ${hasMeeting || hasTask ? 'has-event' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentDate(new Date(year, mi, d));
+                        setViewMode('day');
+                      }}
+                    >{d}</div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ============= RENDER =============
+  return (
+    <div className="gcal-root">
+      {/* ===== TOP BAR ===== */}
+      <div className="gcal-topbar">
+        <div className="gcal-topbar-left">
+          <button className="gcal-today-btn" onClick={goToday}>Today</button>
+          <button className="gcal-nav-btn" onClick={goPrev}><ChevronLeft size={20} /></button>
+          <button className="gcal-nav-btn" onClick={goNext}><ChevronRight size={20} /></button>
+          <span className="gcal-month-title">{getTitle()}</span>
+        </div>
+        <div className="gcal-topbar-right">
+          {/* View switcher */}
+          <div className="gcal-view-switcher">
+            <button className={`gcal-view-btn ${viewMode === 'day' ? 'active' : ''}`} onClick={() => setViewMode('day')}>Day</button>
+            <button className={`gcal-view-btn ${viewMode === 'month' ? 'active' : ''}`} onClick={() => setViewMode('month')}>Month</button>
+            <button className={`gcal-view-btn ${viewMode === 'year' ? 'active' : ''}`} onClick={() => setViewMode('year')}>Year</button>
+          </div>
+          <button className="gcal-create-btn" onClick={() => { setEditingMeeting(null); setSelectedDate(''); setIsModalOpen(true); }}>
+            <Plus size={20} strokeWidth={2.5} />
+            <span>Create</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ===== VIEWS ===== */}
+      {viewMode === 'month' && renderMonthView()}
+      {viewMode === 'day' && renderDayView()}
+      {viewMode === 'year' && renderYearView()}
+
+      {/* ===== ACTION MODAL ===== */}
       {actionMeeting && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setActionMeeting(null) }}>
           <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
@@ -285,25 +409,20 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         </div>
       )}
 
-      {/* === CREATE/EDIT MODAL === */}
+      {/* ===== CREATE/EDIT MODAL ===== */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setIsModalOpen(false); setEditingMeeting(null); } }}>
           <div className="modal-content">
             <h2 className="mb-4">{editingMeeting ? 'Edit Meeting' : 'Schedule a Meeting'}</h2>
             <form action={async (formData) => {
               const localDate = formData.get('date') as string;
-              if (localDate && !localDate.includes('Z')) {
-                formData.set('date', new Date(localDate).toISOString());
-              }
+              if (localDate && !localDate.includes('Z')) formData.set('date', new Date(localDate).toISOString());
               formData.set('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
-              if (editingMeeting) {
-                await editMeeting(editingMeeting.id, formData);
-              } else {
-                await addMeeting(formData);
-              }
+              if (editingMeeting) await editMeeting(editingMeeting.id, formData);
+              else await addMeeting(formData);
               setIsModalOpen(false);
               setEditingMeeting(null);
-              window.location.reload(); 
+              window.location.reload();
             }}>
               <div className="input-group">
                 <label className="input-label">Meeting Title</label>
@@ -311,7 +430,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
               </div>
               <div className="input-group">
                 <label className="input-label">Date & Time</label>
-                <input type="datetime-local" name="date" required className="input-field" defaultValue={editingMeeting ? new Date(new Date(editingMeeting.date).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16) : selectedDate ? `${selectedDate}T09:00` : ''} />
+                <input type="datetime-local" name="date" required className="input-field" defaultValue={editingMeeting ? new Date(new Date(editingMeeting.date).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : selectedDate ? `${selectedDate}T09:00` : ''} />
               </div>
               <div className="input-group">
                 <label className="input-label">Meeting Link / Location</label>
@@ -326,6 +445,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         </div>
       )}
 
+      {/* ===== STYLES ===== */}
       <style jsx>{`
         /* ============= ROOT ============= */
         .gcal-root {
@@ -369,11 +489,8 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           border-radius: 4px;
           cursor: pointer;
           font-family: inherit;
-          line-height: 1.25rem;
         }
-        .gcal-today-btn:hover {
-          background: #f1f3f4;
-        }
+        .gcal-today-btn:hover { background: #f1f3f4; }
         .gcal-nav-btn {
           display: flex;
           align-items: center;
@@ -386,15 +503,40 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           cursor: pointer;
           color: #5f6368;
         }
-        .gcal-nav-btn:hover {
-          background: #f1f3f4;
-        }
+        .gcal-nav-btn:hover { background: #f1f3f4; }
         .gcal-month-title {
           font-size: 1.375rem;
           font-weight: 400;
           color: #3c4043;
-          letter-spacing: 0;
         }
+
+        /* View Switcher */
+        .gcal-view-switcher {
+          display: flex;
+          border: 1px solid #dadce0;
+          border-radius: 4px;
+          overflow: hidden;
+        }
+        .gcal-view-btn {
+          padding: 6px 16px;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: #3c4043;
+          background: #fff;
+          border: none;
+          border-right: 1px solid #dadce0;
+          cursor: pointer;
+          font-family: inherit;
+          transition: background 0.15s;
+        }
+        .gcal-view-btn:last-child { border-right: none; }
+        .gcal-view-btn:hover { background: #f1f3f4; }
+        .gcal-view-btn.active {
+          background: #e8f0fe;
+          color: #1a73e8;
+        }
+
+        /* Create Button */
         .gcal-create-btn {
           display: flex;
           align-items: center;
@@ -417,20 +559,17 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           background: #fafafa;
         }
 
-        /* ============= GRID ============= */
-        .gcal-grid-wrapper {
-          flex: 1;
-          overflow: hidden;
-        }
+        /* ============= MONTH VIEW GRID ============= */
+        .gcal-grid-wrapper { flex: 1; overflow: hidden; }
         .gcal-grid {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          grid-template-rows: auto repeat(6, 1fr);
           height: 100%;
           border-left: 1px solid #dadce0;
         }
-
-        /* ============= DAY HEADER ============= */
+        .gcal-grid-month {
+          grid-template-rows: auto repeat(auto-fill, minmax(0, 1fr));
+        }
         .gcal-day-header {
           text-align: center;
           font-size: 0.6875rem;
@@ -443,8 +582,6 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           border-bottom: 1px solid #dadce0;
           background: #fff;
         }
-
-        /* ============= CELL ============= */
         .gcal-cell {
           display: flex;
           flex-direction: column;
@@ -456,22 +593,9 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           overflow: hidden;
           padding: 2px 4px 4px;
         }
-        .gcal-cell:hover {
-          background: #f8f9fa;
-        }
-        .gcal-cell.other-month {
-          background: #fff;
-        }
-        .gcal-cell.other-month .gcal-date-num {
-          color: #70757a;
-        }
-
-        /* ============= DATE NUMBER ============= */
-        .gcal-cell-date {
-          text-align: center;
-          padding: 2px 0;
-          line-height: 1;
-        }
+        .gcal-cell:hover { background: #f8f9fa; }
+        .gcal-cell.other-month .gcal-date-num { color: #70757a; }
+        .gcal-cell-date { text-align: center; padding: 2px 0; line-height: 1; }
         .gcal-date-num {
           display: inline-flex;
           align-items: center;
@@ -483,15 +607,12 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           font-weight: 500;
           color: #3c4043;
           padding: 0 4px;
+          cursor: pointer;
         }
         .gcal-date-num.today-circle {
           background: #1a73e8;
           color: #fff;
-          font-weight: 500;
-          border-radius: 50%;
         }
-
-        /* ============= EVENTS AREA ============= */
         .gcal-cell-events {
           display: flex;
           flex-direction: column;
@@ -501,7 +622,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           min-width: 0;
         }
 
-        /* ============= TIMED EVENT (dot) ============= */
+        /* Timed event (dot) */
         .gcal-event-timed {
           display: flex;
           align-items: center;
@@ -512,9 +633,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           position: relative;
           min-width: 0;
         }
-        .gcal-event-timed:hover {
-          background: #f1f3f4;
-        }
+        .gcal-event-timed:hover { background: #f1f3f4; }
         .gcal-event-dot {
           width: 8px;
           height: 8px;
@@ -540,7 +659,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           min-width: 0;
         }
 
-        /* ============= CHIP EVENT (task/full block) ============= */
+        /* Chip event (task) */
         .gcal-event-chip {
           display: flex;
           align-items: center;
@@ -552,9 +671,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           min-width: 0;
           font-size: 0.75rem;
         }
-        .gcal-event-chip:hover {
-          filter: brightness(0.9);
-        }
+        .gcal-event-chip:hover { filter: brightness(0.9); }
         .gcal-chip-label {
           overflow: hidden;
           text-overflow: ellipsis;
@@ -565,7 +682,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           font-size: 0.75rem;
         }
 
-        /* ============= DELETE BUTTON ============= */
+        /* Delete button */
         .gcal-del-btn {
           position: absolute;
           right: 2px;
@@ -580,79 +697,233 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           opacity: 0;
           transition: opacity 0.15s;
         }
-        .gcal-event-timed:hover .gcal-del-btn {
-          opacity: 1;
+        .gcal-event-timed:hover .gcal-del-btn { opacity: 1; }
+        .gcal-del-btn:hover { color: #d93025; background: #e8eaed; }
+
+        /* ============= DAY VIEW ============= */
+        .gcal-day-wrapper {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
         }
-        .gcal-del-btn:hover {
-          color: #d93025;
-          background: #e8eaed;
+        .gcal-day-col-header {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px solid #dadce0;
+          flex-shrink: 0;
+        }
+        .gcal-day-col-name {
+          font-size: 0.6875rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .gcal-day-col-num {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          font-size: 1.625rem;
+          font-weight: 400;
+          color: #3c4043;
+          margin-top: 2px;
+          cursor: pointer;
+        }
+        .gcal-day-col-num.today-circle-lg {
+          background: #1a73e8;
+          color: #fff;
+        }
+        .gcal-allday-section {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          padding: 8px 60px 8px 60px;
+          border-bottom: 1px solid #dadce0;
+          flex-shrink: 0;
+        }
+        .gcal-hours-scroll {
+          flex: 1;
+          overflow-y: auto;
+        }
+        .gcal-hours-grid {
+          display: flex;
+          flex-direction: column;
+        }
+        .gcal-hour-row {
+          display: flex;
+          min-height: 48px;
+          border-bottom: 1px solid #e0e0e0;
+        }
+        .gcal-hour-label {
+          width: 56px;
+          font-size: 0.625rem;
+          color: #70757a;
+          text-align: right;
+          padding: 0 8px 0 0;
+          flex-shrink: 0;
+          position: relative;
+          top: -6px;
+        }
+        .gcal-hour-cell {
+          flex: 1;
+          border-left: 1px solid #dadce0;
+          position: relative;
+          cursor: pointer;
+          padding: 2px 4px;
+        }
+        .gcal-hour-cell:hover { background: #f8f9fa; }
+        .gcal-hour-event {
+          background: #039be5;
+          color: #fff;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          margin-bottom: 2px;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+        }
+        .gcal-hour-event:hover { filter: brightness(0.9); }
+        .gcal-hour-event-title {
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .gcal-hour-event-time {
+          font-size: 0.6875rem;
+          opacity: 0.85;
+        }
+
+        /* Now line */
+        .gcal-now-line {
+          position: absolute;
+          left: 0;
+          right: 0;
+          display: flex;
+          align-items: center;
+          z-index: 2;
+          pointer-events: none;
+        }
+        .gcal-now-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: #ea4335;
+          flex-shrink: 0;
+          margin-left: -6px;
+        }
+        .gcal-now-rule {
+          flex: 1;
+          height: 2px;
+          background: #ea4335;
+        }
+
+        /* ============= YEAR VIEW ============= */
+        .gcal-year-wrapper {
+          flex: 1;
+          overflow-y: auto;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 24px;
+          padding: 24px 32px;
+        }
+        .gcal-year-month {
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 8px;
+          transition: background 0.15s;
+        }
+        .gcal-year-month:hover { background: #f1f3f4; }
+        .gcal-year-month-title {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #3c4043;
+          text-align: center;
+          margin-bottom: 8px;
+        }
+        .gcal-year-mini-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 1px;
+          text-align: center;
+        }
+        .gcal-mini-hdr {
+          font-size: 0.5625rem;
+          color: #70757a;
+          font-weight: 500;
+          padding: 2px 0;
+        }
+        .gcal-mini-cell {
+          font-size: 0.6875rem;
+          color: #3c4043;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          cursor: pointer;
+          position: relative;
+        }
+        .gcal-mini-cell:hover { background: #f1f3f4; }
+        .gcal-mini-cell.mini-today {
+          background: #1a73e8;
+          color: #fff;
+        }
+        .gcal-mini-cell.has-event::after {
+          content: '';
+          position: absolute;
+          bottom: 1px;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: #039be5;
+        }
+        .gcal-mini-cell.mini-today.has-event::after {
+          background: #fff;
         }
 
         /* ============= DARK MODE ============= */
-        :global([data-theme='dark']) .gcal-root {
-          background: #202124;
-        }
-        :global([data-theme='dark']) .gcal-topbar {
-          background: #202124;
-          border-color: #5f6368;
-        }
-        :global([data-theme='dark']) .gcal-today-btn {
-          background: #202124;
-          color: #e8eaed;
-          border-color: #5f6368;
-        }
-        :global([data-theme='dark']) .gcal-today-btn:hover {
-          background: #303134;
-        }
-        :global([data-theme='dark']) .gcal-nav-btn {
-          color: #e8eaed;
-        }
-        :global([data-theme='dark']) .gcal-nav-btn:hover {
-          background: #303134;
-        }
-        :global([data-theme='dark']) .gcal-month-title {
-          color: #e8eaed;
-        }
-        :global([data-theme='dark']) .gcal-create-btn {
-          background: #202124;
-          color: #e8eaed;
-          border-color: #5f6368;
-        }
-        :global([data-theme='dark']) .gcal-create-btn:hover {
-          background: #303134;
-        }
-        :global([data-theme='dark']) .gcal-grid {
-          border-color: #5f6368;
-        }
-        :global([data-theme='dark']) .gcal-day-header {
-          background: #202124;
-          color: #9aa0a6;
-          border-color: #5f6368;
-        }
-        :global([data-theme='dark']) .gcal-cell {
-          background: #202124;
-          border-color: #5f6368;
-        }
-        :global([data-theme='dark']) .gcal-cell:hover {
-          background: #303134;
-        }
-        :global([data-theme='dark']) .gcal-date-num {
-          color: #e8eaed;
-        }
-        :global([data-theme='dark']) .gcal-cell.other-month .gcal-date-num {
-          color: #9aa0a6;
-        }
+        :global([data-theme='dark']) .gcal-root { background: #202124; }
+        :global([data-theme='dark']) .gcal-topbar { background: #202124; border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-today-btn { background: #202124; color: #e8eaed; border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-today-btn:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-nav-btn { color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-nav-btn:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-month-title { color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-view-switcher { border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-view-btn { background: #202124; color: #e8eaed; border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-view-btn:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-view-btn.active { background: #394457; color: #8ab4f8; }
+        :global([data-theme='dark']) .gcal-create-btn { background: #202124; color: #e8eaed; border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-create-btn:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-grid { border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-day-header { background: #202124; color: #9aa0a6; border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-cell { background: #202124; border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-cell:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-date-num { color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-cell.other-month .gcal-date-num { color: #9aa0a6; }
         :global([data-theme='dark']) .gcal-event-time,
-        :global([data-theme='dark']) .gcal-event-label {
-          color: #e8eaed;
-        }
-        :global([data-theme='dark']) .gcal-event-timed:hover {
-          background: #303134;
-        }
-        :global([data-theme='dark']) .gcal-del-btn {
-          background: #303134;
-          color: #e8eaed;
-        }
+        :global([data-theme='dark']) .gcal-event-label { color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-event-timed:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-del-btn { background: #303134; color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-day-col-header { border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-day-col-num { color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-allday-section { border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-hour-row { border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-hour-label { color: #9aa0a6; }
+        :global([data-theme='dark']) .gcal-hour-cell { border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-hour-cell:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-year-month:hover { background: #303134; }
+        :global([data-theme='dark']) .gcal-year-month-title { color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-mini-cell { color: #e8eaed; }
+        :global([data-theme='dark']) .gcal-mini-cell:hover { background: #303134; }
       `}</style>
     </div>
   );
