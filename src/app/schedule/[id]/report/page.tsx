@@ -1,7 +1,8 @@
 import { getMeeting } from '@/lib/meetingActions';
 import ReportBuilder from './ReportBuilder';
 
-export default async function ReportPage({ params }: { params: { id: string } }) {
+export default async function ReportPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const meeting = await getMeeting(params.id);
   
   if (!meeting) {
