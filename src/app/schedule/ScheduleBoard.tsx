@@ -290,98 +290,121 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
 
       <style jsx>{`
         .calendar-container {
-          background: var(--bg-secondary);
-          border-radius: 8px;
-          border: 1px solid var(--border-color);
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(10px);
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
           overflow: hidden;
-          box-shadow: var(--shadow-sm);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
           font-family: 'Roboto', 'Inter', system-ui, sans-serif;
           display: flex;
           flex-direction: column;
-          /* Full height minus paddings */
-          height: calc(100vh - 200px); 
-          min-height: 700px;
+          height: calc(100vh - 180px); 
+          min-height: 600px;
+          transition: all 0.3s ease;
+        }
+        [data-theme='light'] .calendar-container {
+          background: #ffffff;
+          border-color: rgba(0,0,0,0.05);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.04);
         }
 
         .calendar-header {
-          padding: 16px 24px;
-          border-bottom: 1px solid var(--border-color);
+          padding: 20px 24px;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
           flex-shrink: 0;
+          background: rgba(0,0,0,0.1);
+        }
+        [data-theme='light'] .calendar-header {
+          border-bottom-color: rgba(0,0,0,0.05);
+          background: rgba(248,250,252,0.8);
         }
 
         .calendar-grid {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          grid-template-rows: auto repeat(5, 1fr); /* 1 row for header, 5 for days */
+          grid-template-rows: auto repeat(auto-fill, minmax(80px, 1fr)); 
           flex: 1;
-          background: var(--border-color);
-          gap: 1px; /* The iconic Google Calendar thin grid lines */
+          background: rgba(255,255,255,0.05);
+          gap: 1px; 
+        }
+        [data-theme='light'] .calendar-grid {
+          background: rgba(0,0,0,0.05);
         }
 
         .calendar-day-header {
           text-align: center;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--text-secondary);
-          padding: 12px 0 4px 0;
+          padding: 12px 0 8px 0;
           font-size: 0.75rem;
           text-transform: uppercase;
+          letter-spacing: 0.5px;
           background: var(--bg-secondary);
         }
 
         .calendar-cell {
           background: var(--bg-secondary);
-          padding: 4px;
+          padding: 8px;
           cursor: pointer;
           display: flex;
           flex-direction: column;
           position: relative;
+          transition: background-color 0.2s ease;
         }
 
         .calendar-cell:not(.empty):hover {
-          background: rgba(0, 0, 0, 0.02);
+          background: rgba(255, 255, 255, 0.02);
+        }
+        [data-theme='light'] .calendar-cell:not(.empty):hover {
+          background: rgba(0, 0, 0, 0.01);
         }
 
         .calendar-cell.empty {
-          background: var(--bg-primary); /* Slight grey for outside month */
-          opacity: 0.6;
+          background: var(--bg-primary); 
+          opacity: 0.4;
           cursor: default;
         }
 
         .cell-header {
-          text-align: center; /* Google Calendar centers the number */
-          margin-bottom: 4px;
+          text-align: right; 
+          margin-bottom: 8px;
         }
 
         .day-number {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
-          font-size: 0.8rem;
+          font-size: 0.85rem;
           font-weight: 500;
           color: var(--text-primary);
+          transition: all 0.2s ease;
         }
 
         .calendar-cell.today .day-number {
-          background: #1a73e8;
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
           color: white;
           font-weight: 600;
+          box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
         }
 
         .calendar-cell:not(.today):not(.empty):hover .day-number {
-          background: rgba(0,0,0,0.06);
+          background: rgba(139, 92, 246, 0.1);
+          color: #8b5cf6;
         }
 
         .cell-events {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 4px;
           flex: 1;
           overflow-y: auto;
-          overflow-x: hidden; /* Prevent horizontal scroll */
-          scrollbar-width: none; /* Hide scrollbar for clean look */
+          overflow-x: hidden; 
+          scrollbar-width: none; 
+          padding-right: 2px;
         }
         
         .cell-events::-webkit-scrollbar {
@@ -389,34 +412,34 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         }
 
         .event-badge {
-          background-color: #1a73e8; /* Google Blue */
-          color: white;
-          padding: 2px 8px;
-          border-radius: 4px;
+          padding: 4px 8px;
+          border-radius: 6px;
           font-size: 0.75rem;
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
           font-weight: 500;
           line-height: 1.4;
-          box-shadow: none;
-          transition: filter 0.15s;
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
           border: none;
-          max-width: 100%; /* Prevent spilling over */
-          overflow: hidden; /* Prevent spilling over */
+          max-width: 100%; 
+          overflow: hidden; 
+          position: relative;
         }
 
         .event-badge:hover {
-          filter: brightness(0.9);
+          transform: translateY(-1px) scale(1.02);
           cursor: pointer;
+          z-index: 10;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .event-time {
-          font-weight: 600;
-          opacity: 0.9;
+          font-weight: 700;
+          opacity: 0.85;
           white-space: nowrap;
           font-size: 0.7rem;
-          flex-shrink: 0; /* Keep time from shrinking */
+          flex-shrink: 0; 
         }
 
         .event-title {
@@ -424,28 +447,32 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           text-overflow: ellipsis;
           white-space: nowrap;
           flex: 1;
-          min-width: 0; /* Required for flex children to truncate */
+          min-width: 0; 
         }
 
         .delete-btn {
-          background: transparent;
+          background: rgba(0,0,0,0.2);
           border: none;
           color: white;
           opacity: 0;
           cursor: pointer;
-          padding: 2px;
+          padding: 4px;
           display: flex;
           align-items: center;
+          justify-content: center;
           border-radius: 4px;
-          transition: opacity 0.2s;
+          transition: all 0.2s;
+          position: absolute;
+          right: 4px;
         }
 
         .delete-btn:hover {
-          background: rgba(0, 0, 0, 0.2);
+          background: rgba(255, 68, 68, 0.9);
+          transform: scale(1.1);
         }
         
         .event-badge:hover .delete-btn {
-          opacity: 0.8;
+          opacity: 1;
         }
       `}</style>
     </div>
