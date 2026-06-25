@@ -557,15 +557,20 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         }
 
         /* ============= MONTH VIEW GRID ============= */
-        .gcal-grid-wrapper { flex: 1; overflow: hidden; }
+        .gcal-grid-wrapper {
+          flex: 1;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
         .gcal-grid {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          height: 100%;
+          grid-template-columns: repeat(7, minmax(0, 1fr));
           border-left: 1px solid #dadce0;
+          flex: 1;
         }
         .gcal-grid-month {
-          grid-template-rows: auto repeat(auto-fill, minmax(0, 1fr));
+          grid-template-rows: 28px repeat(6, minmax(0, 1fr));
         }
         .gcal-day-header {
           text-align: center;
@@ -574,10 +579,13 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           color: #70757a;
           text-transform: uppercase;
           letter-spacing: 0.8px;
-          padding: 4px 0 2px;
+          padding: 6px 0;
           border-right: 1px solid #dadce0;
           border-bottom: 1px solid #dadce0;
           background: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .gcal-cell {
           display: flex;
@@ -587,12 +595,18 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           background: #fff;
           cursor: pointer;
           min-width: 0;
+          min-height: 0;
           overflow: hidden;
           padding: 2px 4px 4px;
         }
         .gcal-cell:hover { background: #f8f9fa; }
         .gcal-cell.other-month .gcal-date-num { color: #70757a; }
-        .gcal-cell-date { text-align: center; padding: 2px 0; line-height: 1; }
+        .gcal-cell-date {
+          text-align: center;
+          padding: 2px 0;
+          line-height: 1;
+          flex-shrink: 0;
+        }
         .gcal-date-num {
           display: inline-flex;
           align-items: center;
@@ -615,9 +629,12 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           flex-direction: column;
           gap: 1px;
           flex: 1;
-          overflow: hidden;
+          overflow-y: auto;
+          overflow-x: hidden;
           min-width: 0;
+          scrollbar-width: none;
         }
+        .gcal-cell-events::-webkit-scrollbar { display: none; }
 
         /* Timed event (dot) */
         .gcal-event-timed {
