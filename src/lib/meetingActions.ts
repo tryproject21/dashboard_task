@@ -86,6 +86,7 @@ export async function deleteMeeting(id: string) {
     } catch (e) {
       console.error(e);
     }
+  }
   revalidatePath('/schedule');
   revalidatePath('/');
 }
