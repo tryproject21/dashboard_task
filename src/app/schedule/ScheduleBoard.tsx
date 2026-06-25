@@ -147,7 +147,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
                 style={{ backgroundColor: '#1a73e8', color: 'white', border: 'none' }}
               >
                 <span className="event-time">{new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                <span className="event-title">{m.title}</span>
+                <span className="event-title">&nbsp;{m.title}</span>
                 <button type="button" className="delete-btn" onClick={(e) => handleDelete(m.id, e)}><Trash2 size={12}/></button>
               </div>
             ))}
@@ -380,6 +380,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           gap: 2px;
           flex: 1;
           overflow-y: auto;
+          overflow-x: hidden; /* Prevent horizontal scroll */
           scrollbar-width: none; /* Hide scrollbar for clean look */
         }
         
@@ -401,6 +402,8 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           box-shadow: none;
           transition: filter 0.15s;
           border: none;
+          max-width: 100%; /* Prevent spilling over */
+          overflow: hidden; /* Prevent spilling over */
         }
 
         .event-badge:hover {
@@ -413,6 +416,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           opacity: 0.9;
           white-space: nowrap;
           font-size: 0.7rem;
+          flex-shrink: 0; /* Keep time from shrinking */
         }
 
         .event-title {
@@ -420,6 +424,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           text-overflow: ellipsis;
           white-space: nowrap;
           flex: 1;
+          min-width: 0; /* Required for flex children to truncate */
         }
 
         .delete-btn {
