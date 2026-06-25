@@ -1,3 +1,5 @@
+'use server';
+
 import { sql } from './db';
 import { revalidatePath } from 'next/cache';
 
