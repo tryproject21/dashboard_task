@@ -73,6 +73,18 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
     }
   }, []);
 
+  React.useEffect(() => {
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      if (e.clipboardData && e.clipboardData.files.length > 0) {
+        processFiles(e.clipboardData.files);
+      }
+    };
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => {
+      window.removeEventListener('paste', handleGlobalPaste);
+    };
+  }, []);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
@@ -269,7 +281,7 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
             >
               <UploadCloud className="file-upload-icon" size={36} />
               <p style={{ color: 'var(--text-primary)', marginBottom: '8px', fontWeight: 500 }}>
-                Tarik & Lepas foto ke sini
+                Tarik & Lepas foto ke sini, atau <kbd>Ctrl+V</kbd> (Paste)
               </p>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                 atau klik untuk memilih file (Bisa lebih dari 1)
