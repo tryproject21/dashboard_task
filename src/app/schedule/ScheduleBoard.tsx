@@ -162,47 +162,51 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
 
       <style jsx>{`
         .calendar-container {
-          padding: 0;
           background: var(--bg-secondary);
-          border-radius: 12px;
+          border-radius: 8px;
           border: 1px solid var(--border-color);
           overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          box-shadow: var(--shadow-sm);
+          font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+          display: flex;
+          flex-direction: column;
+          /* Full height minus paddings */
+          height: calc(100vh - 200px); 
+          min-height: 700px;
         }
 
         .calendar-header {
-          padding: 20px 24px;
+          padding: 16px 24px;
           border-bottom: 1px solid var(--border-color);
+          flex-shrink: 0;
         }
 
         .calendar-grid {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
+          grid-template-rows: auto repeat(5, 1fr); /* 1 row for header, 5 for days */
+          flex: 1;
           background: var(--border-color);
-          gap: 1px; /* This creates the thin grid lines like Google Calendar */
-          border-bottom: 1px solid var(--border-color);
+          gap: 1px; /* The iconic Google Calendar thin grid lines */
         }
 
         .calendar-day-header {
           text-align: center;
           font-weight: 500;
           color: var(--text-secondary);
-          padding: 12px 0;
-          font-size: 0.8rem;
+          padding: 12px 0 4px 0;
+          font-size: 0.75rem;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
-          background: var(--bg-primary);
+          background: var(--bg-secondary);
         }
 
         .calendar-cell {
-          background: var(--bg-primary);
-          min-height: 140px;
-          padding: 8px;
+          background: var(--bg-secondary);
+          padding: 4px;
           cursor: pointer;
-          transition: background 0.1s;
           display: flex;
           flex-direction: column;
+          position: relative;
         }
 
         .calendar-cell:not(.empty):hover {
@@ -210,31 +214,25 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
         }
 
         .calendar-cell.empty {
-          background: var(--bg-secondary);
-          opacity: 0.5;
+          background: var(--bg-primary); /* Slight grey for outside month */
+          opacity: 0.6;
           cursor: default;
         }
 
         .cell-header {
-          text-align: center;
-          margin-bottom: 8px;
+          text-align: center; /* Google Calendar centers the number */
+          margin-bottom: 4px;
         }
 
         .day-number {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 30px;
-          height: 30px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
-          font-size: 0.85rem;
+          font-size: 0.8rem;
           font-weight: 500;
-          color: var(--text-secondary);
-          transition: all 0.2s;
-        }
-
-        .calendar-cell:not(.empty):hover .day-number {
-          background: rgba(0,0,0,0.05);
           color: var(--text-primary);
         }
 
@@ -244,60 +242,47 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
           font-weight: 600;
         }
 
-        .calendar-cell.today .day-number:hover {
-          background: #1557b0;
+        .calendar-cell:not(.today):not(.empty):hover .day-number {
+          background: rgba(0,0,0,0.06);
         }
 
         .cell-events {
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 2px;
           flex: 1;
           overflow-y: auto;
-          scrollbar-width: thin;
+          scrollbar-width: none; /* Hide scrollbar for clean look */
         }
         
         .cell-events::-webkit-scrollbar {
-          width: 4px;
-        }
-        .cell-events::-webkit-scrollbar-thumb {
-          background: rgba(0,0,0,0.1);
-          border-radius: 4px;
+          display: none;
         }
 
         .event-badge {
-          background: var(--bg-secondary);
-          color: var(--accent-primary);
-          padding: 4px 8px;
+          background: var(--accent-primary);
+          color: white;
+          padding: 2px 8px;
           border-radius: 4px;
           font-size: 0.75rem;
           display: flex;
           align-items: center;
-          gap: 6px;
-          position: relative;
+          gap: 4px;
           font-weight: 500;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+          line-height: 1.4;
+          box-shadow: none;
           transition: filter 0.15s;
-          border: 1px solid var(--accent-primary);
+          border: none;
         }
 
         .event-badge:hover {
-          filter: brightness(0.95);
+          filter: brightness(0.9);
           cursor: pointer;
         }
 
-        .event-badge:before {
-          content: '';
-          display: inline-block;
-          width: 6px;
-          height: 6px;
-          background: var(--accent-primary);
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
         .event-time {
-          opacity: 0.8;
+          font-weight: 600;
+          opacity: 0.9;
           white-space: nowrap;
           font-size: 0.7rem;
         }
@@ -312,19 +297,22 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
         .delete-btn {
           background: transparent;
           border: none;
-          color: inherit;
-          opacity: 0.5;
+          color: white;
+          opacity: 0;
           cursor: pointer;
           padding: 2px;
           display: flex;
           align-items: center;
           border-radius: 4px;
+          transition: opacity 0.2s;
         }
 
         .delete-btn:hover {
-          background: rgba(0, 0, 0, 0.1);
-          color: var(--danger);
-          opacity: 1;
+          background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .event-badge:hover .delete-btn {
+          opacity: 0.8;
         }
       `}</style>
     </div>
