@@ -99,7 +99,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           </div>
           <div className="cell-events">
             {dayMeetings.map(m => (
-              <div key={m.id} className="event-badge" onClick={(e) => handleEdit(m, e)}>
+              <div key={m.id} className="event-badge" onClick={(e) => handleEdit(m, e)} style={{ backgroundColor: '#1a73e8', color: 'white', border: 'none' }}>
                 <span className="event-time">{new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 <span className="event-title">{m.title}</span>
                 <button type="button" className="delete-btn" onClick={(e) => handleDelete(m.id, e)}><Trash2 size={12}/></button>
