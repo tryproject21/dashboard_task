@@ -24,6 +24,35 @@ export async function getMeetings() {
   }
 }
 
+export async function getMeeting(id: string) {
+  const session = await getServerSession(authOptions);
+  if (session) {
+    const { getGoogleCalendarClient } = await import('./googleCalendar');
+    const calendar = await getGoogleCalendarClient();
+    if (calendar) {
+      try {
+        const eventRes = await calendar.events.get({ calendarId: 'primary', eventId: id });
+        const e = eventRes.data;
+        return {
+          id: e.id,
+          title: e.summary || 'Untitled',
+          date: e.start?.dateTime || e.start?.date,
+          link: e.htmlLink || e.location || ''
+        };
+      } catch(e) {
+        return null;
+      }
+    }
+  }
+
+  try {
+    const { rows } = await sql`SELECT * FROM meetings WHERE id = ${id}`;
+    return rows[0] || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 export async function addMeeting(formData: FormData) {
   const title = formData.get('title') as string;
   const date = formData.get('date') as string;

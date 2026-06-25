@@ -26,6 +26,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
   const [meetings, setMeetings] = useState(initialMeetings);
   const [tasks, setTasks] = useState(initialTasks);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [actionMeeting, setActionMeeting] = useState<Meeting | null>(null);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
   
@@ -39,9 +40,14 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
     }
   };
 
-  const handleEdit = (meeting: Meeting, e: React.MouseEvent) => {
+  const handleMeetingClick = (meeting: Meeting, e: React.MouseEvent) => {
     e.stopPropagation();
-    setEditingMeeting(meeting);
+    setActionMeeting(meeting);
+  }
+
+  const handleEdit = () => {
+    setEditingMeeting(actionMeeting);
+    setActionMeeting(null);
     setSelectedDate('');
     setIsModalOpen(true);
   }
@@ -135,7 +141,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
               <div 
                 key={m.id} 
                 className="event-badge" 
-                onClick={(e) => handleEdit(m, e)} 
+                onClick={(e) => handleMeetingClick(m, e)} 
                 draggable
                 onDragStart={(e) => handleDragStart(e, m.id)}
                 style={{ backgroundColor: '#1a73e8', color: 'white', border: 'none' }}
@@ -192,6 +198,30 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           {renderCells()}
         </div>
       </div>
+
+      {actionMeeting && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setActionMeeting(null) }}>
+          <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
+            <h3 className="mb-4">{actionMeeting.title}</h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+              {new Date(actionMeeting.date).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' })}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button className="btn btn-primary" onClick={() => router.push(`/schedule/${actionMeeting.id}/report`)}>
+                📄 Write / View Report
+              </button>
+              <button className="btn btn-secondary" onClick={handleEdit}>
+                ✏️ Edit Meeting Details
+              </button>
+              {actionMeeting.link && (
+                <a href={actionMeeting.link} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                  🔗 Join Meeting
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setIsModalOpen(false); setEditingMeeting(null); } }}>
