@@ -91,14 +91,26 @@ export async function POST(request: Request) {
       
       if (call.name === 'createTask') {
         try {
-          await sql`INSERT INTO tasks (title, priority, deadline) VALUES (${args.title}, ${args.priority || 'medium'}, ${args.deadline || null})`;
+          const { addTask } = await import('@/lib/taskActions');
+          const formData = new FormData();
+          formData.append('title', args.title);
+          formData.append('description', 'Dibuat oleh AI Assistant');
+          if (args.deadline) formData.append('deadline', args.deadline);
+          formData.append('priority', args.priority || 'medium');
+          await addTask(formData);
           actionResult = `Tugas "${args.title}" berhasil ditambahkan ke database!`;
         } catch (e) {
           actionResult = "Gagal menyimpan tugas ke database.";
         }
       } else if (call.name === 'createMeeting') {
         try {
-          await sql`INSERT INTO meetings (title, date, link) VALUES (${args.title}, ${args.date}, ${args.link || ''})`;
+          const { addMeeting } = await import('@/lib/meetingActions');
+          const formData = new FormData();
+          formData.append('title', args.title);
+          formData.append('date', args.date);
+          formData.append('link', args.link || '');
+          formData.append('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+          await addMeeting(formData);
           actionResult = `Rapat "${args.title}" berhasil dijadwalkan pada ${args.date}!`;
         } catch (e) {
           actionResult = "Gagal menjadwalkan rapat ke database.";
