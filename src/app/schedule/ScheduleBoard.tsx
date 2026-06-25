@@ -151,12 +151,35 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
                 <button type="button" className="delete-btn" onClick={(e) => handleDelete(m.id, e)}><Trash2 size={12}/></button>
               </div>
             ))}
-            {dayTasks.map(t => (
-              <div key={`task-${t.id}`} className="event-badge task-badge" onClick={handleTaskClick} style={{ backgroundColor: '#0f9d58', opacity: t.status === 'done' ? 0.6 : 1 }}>
-                <CheckCircle2 size={12} style={{ flexShrink: 0 }} />
-                <span className="event-title" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
-              </div>
-            ))}
+            {dayTasks.map(t => {
+              let bgColor = '#34a853'; // low -> green
+              let textColor = '#ffffff';
+              
+              if (t.priority === 'high') {
+                bgColor = '#ea4335'; // red
+              } else if (t.priority === 'medium') {
+                bgColor = '#fbbc04'; // yellow
+                textColor = '#000000'; // black text for yellow bg
+              }
+
+              return (
+                <div 
+                  key={`task-${t.id}`} 
+                  className="event-badge task-badge" 
+                  onClick={handleTaskClick} 
+                  style={{ 
+                    backgroundColor: bgColor, 
+                    color: textColor,
+                    opacity: t.status === 'done' ? 0.6 : 1 
+                  }}
+                >
+                  <CheckCircle2 size={12} style={{ flexShrink: 0 }} />
+                  <span className="event-title" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>
+                    {t.title}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       );
