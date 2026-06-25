@@ -303,7 +303,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           min-height: 600px;
           transition: all 0.3s ease;
         }
-        [data-theme='light'] .calendar-container {
+        :global([data-theme='light']) .calendar-container {
           background: #ffffff;
           border-color: rgba(0,0,0,0.05);
           box-shadow: 0 8px 32px rgba(0,0,0,0.04);
@@ -315,7 +315,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           flex-shrink: 0;
           background: rgba(0,0,0,0.1);
         }
-        [data-theme='light'] .calendar-header {
+        :global([data-theme='light']) .calendar-header {
           border-bottom-color: rgba(0,0,0,0.05);
           background: rgba(248,250,252,0.8);
         }
@@ -328,7 +328,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           background: rgba(255,255,255,0.05);
           gap: 1px; 
         }
-        [data-theme='light'] .calendar-grid {
+        :global([data-theme='light']) .calendar-grid {
           background: rgba(0,0,0,0.05);
         }
 
@@ -357,7 +357,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         .calendar-cell:not(.empty):hover {
           background: rgba(255, 255, 255, 0.02);
         }
-        [data-theme='light'] .calendar-cell:not(.empty):hover {
+        :global([data-theme='light']) .calendar-cell:not(.empty):hover {
           background: rgba(0, 0, 0, 0.01);
         }
 
