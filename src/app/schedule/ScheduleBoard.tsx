@@ -106,7 +106,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
               </div>
             ))}
             {dayTasks.map(t => (
-              <div key={`task-${t.id}`} className="event-badge task-badge" onClick={handleTaskClick} style={{ backgroundColor: 'var(--success)', opacity: t.status === 'done' ? 0.6 : 1 }}>
+              <div key={`task-${t.id}`} className="event-badge task-badge" onClick={handleTaskClick} style={{ backgroundColor: '#0f9d58', opacity: t.status === 'done' ? 0.6 : 1 }}>
                 <CheckCircle2 size={12} style={{ flexShrink: 0 }} />
                 <span className="event-title" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
               </div>
@@ -295,7 +295,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         }
 
         .event-badge {
-          background: var(--accent-primary);
+          background-color: #1a73e8; /* Google Blue */
           color: white;
           padding: 2px 8px;
           border-radius: 4px;
