@@ -40,11 +40,11 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
     setReportData(prev => ({ ...prev, [name]: value }));
   };
 
-  const processFiles = async (files: FileList | File[]) => {
+  const processFiles = useCallback(async (files: File[] | FileList) => {
     const newImages: DocImage[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file.type.startsWith('image/')) {
+      if (file.type.indexOf('image') !== -1) {
         try {
           const compressedBase64 = await compressImage(file);
           newImages.push({
@@ -63,7 +63,7 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
         dokumentasi: [...prev.dokumentasi, ...newImages]
       }));
     }
-  };
+  }, []);
 
   const handleDropFile = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -71,23 +71,41 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       processFiles(e.dataTransfer.files);
     }
-  }, []);
+  }, [processFiles]);
 
   React.useEffect(() => {
     const handleGlobalPaste = (e: ClipboardEvent) => {
-      if (e.clipboardData && e.clipboardData.files.length > 0) {
-        processFiles(e.clipboardData.files);
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      
+      const files: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) files.push(file);
+        }
+      }
+
+      if (files.length > 0) {
+        const targetName = (e.target as HTMLElement).tagName;
+        if (targetName !== 'TEXTAREA' && targetName !== 'INPUT') {
+          e.preventDefault();
+        }
+        processFiles(files);
       }
     };
+    
     window.addEventListener('paste', handleGlobalPaste);
     return () => {
       window.removeEventListener('paste', handleGlobalPaste);
     };
-  }, []);
+  }, [processFiles]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
+      // Reset input value so the same file can be selected again
+      e.target.value = '';
     }
   };
 
