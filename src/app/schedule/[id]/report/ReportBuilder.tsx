@@ -727,6 +727,7 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
           font-size: 24pt;
           font-weight: bold;
           margin-bottom: 8px;
+          color: #000 !important;
         }
 
         .pdf-content-section {
@@ -738,34 +739,40 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
           margin-bottom: 15px;
           font-size: 12pt;
           line-height: 1.6;
+          color: #000 !important;
         }
 
         .pdf-label {
           font-weight: bold;
           width: 150px;
           flex-shrink: 0;
+          color: #000 !important;
         }
 
         .pdf-value {
           flex-grow: 1;
           white-space: pre-wrap;
+          color: #000 !important;
         }
 
         .pdf-notulensi {
           text-align: justify;
           font-size: 12pt;
           line-height: 1.6;
+          color: #000 !important;
         }
         .pdf-notulensi p {
           margin-bottom: 8px;
+          color: #000 !important;
         }
 
         .pdf-section-title {
           font-size: 14pt;
           font-weight: bold;
           margin-bottom: 15px;
-          border-bottom: 1px solid #ccc;
+          border-bottom: 1px solid #000;
           padding-bottom: 5px;
+          color: #000 !important;
         }
 
         .pdf-doc-grid {
@@ -797,7 +804,7 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
           font-size: 11pt;
           font-style: italic;
           text-align: center;
-          color: #333;
+          color: #000 !important;
         }
 
         .html2pdf__page-break {
