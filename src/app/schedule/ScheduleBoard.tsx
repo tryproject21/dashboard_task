@@ -174,8 +174,14 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
   const renderMonthView = () => {
     const cells = buildMonthCells();
     return (
-      <div className="gcal-grid-wrapper">
-        <div className="gcal-grid gcal-grid-month">
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+          gridTemplateRows: '28px repeat(6, minmax(0, 1fr))',
+          flex: 1,
+          borderLeft: '1px solid #dadce0',
+        }}>
           {dayHeaders.map(dh => (
             <div key={dh} className="gcal-day-header">{dh}</div>
           ))}
