@@ -17,11 +17,6 @@ export async function getFiles() {
 
 export async function deleteFile(id: string, filePath: string) {
   try {
-    // Delete from filesystem (Note: on Vercel this only works locally, storage solutions are needed for real deployments)
-    const fullPath = path.join(process.cwd(), 'public', filePath);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-    }
     // Delete from DB
     await sql`DELETE FROM files WHERE id = ${id}`;
     revalidatePath('/files');

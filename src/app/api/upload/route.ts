@@ -14,22 +14,18 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const base64Content = buffer.toString('base64');
     const uniqueName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const filePath = path.join(uploadDir, uniqueName);
-    fs.writeFileSync(filePath, buffer);
-
-    const dbPath = `/uploads/${uniqueName}`;
+    const dbPath = `/api/files/download/${uniqueName}`;
     const parentId = formData.get('parentId') as string | null;
 
+    try {
+      await sql`ALTER TABLE files ADD COLUMN IF NOT EXISTS content TEXT`;
+    } catch (e) {}
+
     await sql`
-      INSERT INTO files (name, path, size, type, "taskId", "parentId")
-      VALUES (${file.name}, ${dbPath}, ${file.size}, ${file.type}, ${taskId || null}, ${parentId || null})
+      INSERT INTO files (name, path, size, type, "taskId", "parentId", content)
+      VALUES (${file.name}, ${dbPath}, ${file.size}, ${file.type}, ${taskId || null}, ${parentId || null}, ${base64Content})
     `;
 
     return NextResponse.json({ success: true, path: dbPath });
