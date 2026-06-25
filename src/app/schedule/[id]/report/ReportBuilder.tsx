@@ -410,6 +410,14 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
       </div>
 
       <style jsx global>{`
+        @font-face {
+          font-family: 'CustomReportFont';
+          src: url('/fonts/custom-font.ttf') format('truetype'),
+               url('/fonts/custom-font.otf') format('opentype');
+          font-weight: normal;
+          font-style: normal;
+        }
+
         .report-app-container {
           display: flex;
           flex-direction: column;
@@ -645,7 +653,7 @@ export default function ReportBuilder({ meeting }: { meeting: Meeting }) {
         .pdf-document {
           position: relative;
           width: 100%;
-          font-family: 'Times New Roman', Times, serif;
+          font-family: 'CustomReportFont', 'Times New Roman', Times, serif;
           color: #000;
           background: #ffffff;
         }
