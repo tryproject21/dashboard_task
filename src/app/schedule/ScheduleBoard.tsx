@@ -124,6 +124,9 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
       });
 
               const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+      const isFirstDay = d === 1;
+      const monthAbbr = new Date(year, month, d).toLocaleString('en-US', { month: 'short' });
+      const displayDate = isFirstDay ? `${monthAbbr} ${d}` : d;
 
       cells.push(
         <div 
@@ -134,7 +137,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           onDrop={(e) => handleDrop(e, dateStr)}
         >
           <div className="cell-header">
-            <span className="day-number">{d}</span>
+            <span className="day-number">{displayDate}</span>
           </div>
           <div className="cell-events">
             {dayMeetings.map(m => {
@@ -165,7 +168,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
                   className="event-badge task-badge" 
                   onClick={handleTaskClick} 
                   style={{ 
-                    backgroundColor: `${baseColor}20`, // 20% opacity
+                    backgroundColor: `${baseColor}20`,
                     borderLeft: `3px solid ${baseColor}`,
                     color: '#3c4043',
                     opacity: t.status === 'done' ? 0.6 : 1 
@@ -186,34 +189,39 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
   };
 
   return (
-    <div>
-      <div className="flex-between mb-4">
-        <div>
-          <h1 className="text-gradient" style={{ fontSize: '2rem' }}>Schedule</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Manage your meetings and appointments.</p>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff' }}>
+      {/* Google Calendar Style Top Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 24px', borderBottom: '1px solid #dadce0', backgroundColor: '#ffffff', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <button className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.875rem', color: '#3c4043', border: '1px solid #dadce0', borderRadius: '4px', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 500 }} onClick={() => setCurrentMonth(new Date())}>
+            Today
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5f6368', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '50%' }} className="icon-btn-hover" onClick={prevMonth}>
+              <ChevronLeft size={20} />
+            </button>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5f6368', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '50%' }} className="icon-btn-hover" onClick={nextMonth}>
+              <ChevronRight size={20} />
+            </button>
+          </div>
+          
+          <h2 style={{ fontSize: '1.375rem', fontWeight: 400, color: '#3c4043', margin: 0 }}>
+            {monthNames[month]} {year}
+          </h2>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <a href="/api/calendar/feed" download className="btn btn-secondary" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <CalendarIcon size={18} /> Export to GCal (.ics)
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <a href="/api/calendar/feed" download style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '0.875rem', color: '#3c4043', border: '1px solid #dadce0', borderRadius: '4px', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+            <CalendarIcon size={16} /> Export
           </a>
-          <button className="btn btn-primary" onClick={() => { setEditingMeeting(null); setSelectedDate(''); setIsModalOpen(true); }}>
-            <Plus size={18} /> Add Meeting
+          <button onClick={() => { setEditingMeeting(null); setSelectedDate(''); setIsModalOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 24px', fontSize: '0.875rem', color: '#fff', border: 'none', borderRadius: '24px', backgroundColor: '#1a73e8', cursor: 'pointer', fontWeight: 500, boxShadow: '0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)' }}>
+            <Plus size={20} /> Create
           </button>
         </div>
       </div>
 
       <div className="calendar-container">
-        <div className="calendar-header flex-between">
-          <h2 style={{ fontSize: '1.375rem', fontWeight: 400, color: '#3c4043', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {monthNames[month]} {year}
-          </h2>
-          <div className="flex-center gap-2">
-            <button className="btn-icon" onClick={prevMonth}><ChevronLeft size={20} /></button>
-            <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.875rem' }} onClick={() => setCurrentMonth(new Date())}>Today</button>
-            <button className="btn-icon" onClick={nextMonth}><ChevronRight size={20} /></button>
-          </div>
-        </div>
-        
         <div className="calendar-grid">
           {days.map(day => (
             <div key={day} className="calendar-day-header">{day}</div>
@@ -291,21 +299,16 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
       <style jsx>{`
         .calendar-container {
           background: #ffffff;
-          border-radius: 8px;
-          border: 1px solid #dadce0;
+          border: none;
           overflow: hidden;
           font-family: 'Google Sans', 'Roboto', 'Inter', system-ui, sans-serif;
           display: flex;
           flex-direction: column;
-          height: calc(100vh - 180px); 
-          min-height: 600px;
+          flex: 1;
         }
 
-        .calendar-header {
-          padding: 12px 24px;
-          border-bottom: 1px solid #dadce0;
-          flex-shrink: 0;
-          background: #ffffff;
+        .icon-btn-hover:hover {
+          background-color: #f1f3f4 !important;
         }
 
         .calendar-grid {
@@ -315,6 +318,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           flex: 1;
           background: #dadce0;
           gap: 1px; 
+          border-top: 1px solid #dadce0;
         }
 
         .calendar-day-header {
