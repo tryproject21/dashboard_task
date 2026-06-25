@@ -31,6 +31,25 @@ export async function addTask(formData: FormData) {
   }
 }
 
+export async function editTask(id: string, formData: FormData) {
+  const title = formData.get('title') as string;
+  const description = formData.get('description') as string;
+  const deadline = formData.get('deadline') as string;
+  const priority = formData.get('priority') as string || 'medium';
+
+  try {
+    await sql`
+      UPDATE tasks 
+      SET title = ${title}, description = ${description}, deadline = ${deadline}, priority = ${priority}
+      WHERE id = ${id}
+    `;
+    revalidatePath('/tasks');
+    revalidatePath('/');
+  } catch (error) {
+    console.error("Failed to edit task:", error);
+  }
+}
+
 export async function updateTaskStatus(id: string, status: string) {
   const completedAt = status === 'done' ? new Date().toISOString() : null;
   try {

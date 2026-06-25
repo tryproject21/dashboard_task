@@ -77,3 +77,38 @@ export async function createGoogleEvent(title: string, date: string, link: strin
     return null;
   }
 }
+
+export async function updateGoogleEvent(id: string, title: string, date: string, link: string) {
+  const calendar = await getGoogleCalendarClient();
+  if (!calendar) return null;
+
+  try {
+    const startDate = new Date(date);
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + 1);
+
+    const event = {
+      summary: title,
+      location: link,
+      start: {
+        dateTime: startDate.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      end: {
+        dateTime: endDate.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    };
+
+    const res = await calendar.events.update({
+      calendarId: 'primary',
+      eventId: id,
+      requestBody: event,
+    });
+    
+    return res.data;
+  } catch (error) {
+    console.error("GCal update error", error);
+    return null;
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Clock, Trash2, Calendar, MoreVertical, Paperclip, File as FileIcon, X, GripVertical } from 'lucide-react';
-import { addTask, updateTaskStatus, deleteTask } from '@/lib/taskActions';
+import { addTask, updateTaskStatus, deleteTask, editTask } from '@/lib/taskActions';
 import { linkFileToTask } from '@/lib/fileActions';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
@@ -26,6 +26,7 @@ type FileRecord = {
 export default function TaskBoard({ initialTasks, allFiles }: { initialTasks: Task[], allFiles: FileRecord[] }) {
   const [tasks, setTasks] = useState(initialTasks);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [linkingTask, setLinkingTask] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -95,7 +96,7 @@ export default function TaskBoard({ initialTasks, allFiles }: { initialTasks: Ta
           <h1 className="text-gradient" style={{ fontSize: '2rem' }}>Task Management</h1>
           <p style={{ color: 'var(--text-muted)' }}>Organize your professional tasks effectively.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+        <button className="btn btn-primary" onClick={() => { setEditingTask(null); setIsModalOpen(true); }}>
           <Plus size={18} /> New Task
         </button>
       </div>
@@ -142,6 +143,7 @@ export default function TaskBoard({ initialTasks, allFiles }: { initialTasks: Ta
                                 <div className="dropdown">
                                   <button className="btn-icon"><MoreVertical size={16}/></button>
                                   <div className="dropdown-content glass-panel">
+                                    <button onClick={() => { setEditingTask(task); setIsModalOpen(true); }}>Edit Task</button>
                                     {columns.filter(c => c.id !== task.status).map(c => (
                                       <button key={c.id} onClick={() => handleStatusChange(task.id, c.id)}>
                                         Move to {c.title}
@@ -192,30 +194,35 @@ export default function TaskBoard({ initialTasks, allFiles }: { initialTasks: Ta
 
       {/* Modals follow ... */}
       {isModalOpen && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setIsModalOpen(false); setEditingTask(null); } }}>
           <div className="modal-content">
-            <h2 className="mb-4">Create New Task</h2>
+            <h2 className="mb-4">{editingTask ? 'Edit Task' : 'Create New Task'}</h2>
             <form action={async (formData) => {
-              await addTask(formData);
+              if (editingTask) {
+                await editTask(editingTask.id, formData);
+              } else {
+                await addTask(formData);
+              }
               setIsModalOpen(false);
+              setEditingTask(null);
               window.location.reload(); 
             }}>
               <div className="input-group">
                 <label className="input-label">Task Title</label>
-                <input name="title" required className="input-field" placeholder="e.g. Prepare Q3 Report" />
+                <input name="title" required className="input-field" placeholder="e.g. Prepare Q3 Report" defaultValue={editingTask?.title || ''} />
               </div>
               <div className="input-group">
                 <label className="input-label">Description</label>
-                <textarea name="description" className="input-field" rows={3} placeholder="Add details..."></textarea>
+                <textarea name="description" className="input-field" rows={3} placeholder="Add details..." defaultValue={editingTask?.description || ''}></textarea>
               </div>
               <div className="flex-between gap-4">
                 <div className="input-group" style={{ flex: 1 }}>
                   <label className="input-label">Deadline</label>
-                  <input type="date" name="deadline" className="input-field" />
+                  <input type="date" name="deadline" className="input-field" defaultValue={editingTask?.deadline || ''} />
                 </div>
                 <div className="input-group" style={{ flex: 1 }}>
                   <label className="input-label">Priority</label>
-                  <select name="priority" className="input-field">
+                  <select name="priority" className="input-field" defaultValue={editingTask?.priority || 'medium'}>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -223,8 +230,8 @@ export default function TaskBoard({ initialTasks, allFiles }: { initialTasks: Ta
                 </div>
               </div>
               <div className="flex-between mt-4" style={{ marginTop: '24px' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Create Task</button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setIsModalOpen(false); setEditingTask(null); }}>Cancel</button>
+                <button type="submit" className="btn btn-primary">{editingTask ? 'Save Changes' : 'Create Task'}</button>
               </div>
             </form>
           </div>

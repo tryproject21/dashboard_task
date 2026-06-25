@@ -44,6 +44,27 @@ export async function addMeeting(formData: FormData) {
   revalidatePath('/');
 }
 
+export async function editMeeting(id: string, formData: FormData) {
+  const title = formData.get('title') as string;
+  const date = formData.get('date') as string;
+  const link = formData.get('link') as string;
+
+  const session = await getServerSession(authOptions);
+  if (session) {
+    const { updateGoogleEvent } = await import('./googleCalendar');
+    await updateGoogleEvent(id, title, date, link);
+  } else {
+    try {
+      await sql`UPDATE meetings SET title = ${title}, date = ${date}, link = ${link} WHERE id = ${id}`;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
+  revalidatePath('/schedule');
+  revalidatePath('/');
+}
+
 export async function deleteMeeting(id: string) {
   const session = await getServerSession(authOptions);
   if (session) {
