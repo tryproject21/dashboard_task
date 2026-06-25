@@ -20,17 +20,38 @@ export async function POST(req: NextRequest) {
     const parentId = formData.get('parentId') as string | null;
 
     try {
-      await sql`ALTER TABLE files ADD COLUMN IF NOT EXISTS content TEXT`;
+      await sql`
+        CREATE TABLE IF NOT EXISTS file_chunks (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          file_id UUID,
+          chunk_index INTEGER,
+          data TEXT
+        )
+      `;
     } catch (e) {}
 
-    await sql`
-      INSERT INTO files (name, path, size, type, "taskId", "parentId", content)
-      VALUES (${file.name}, ${dbPath}, ${file.size}, ${file.type}, ${taskId || null}, ${parentId || null}, ${base64Content})
+    // First insert the file record
+    const { rows } = await sql`
+      INSERT INTO files (name, path, size, type, "taskId", "parentId")
+      VALUES (${file.name}, ${dbPath}, ${file.size}, ${file.type}, ${taskId || null}, ${parentId || null})
+      RETURNING id
     `;
+    
+    const fileId = rows[0].id;
+
+    // Split base64 into 500KB chunks to bypass Neon HTTP 1MB limit
+    const chunkSize = 500000;
+    for (let i = 0; i < base64Content.length; i += chunkSize) {
+      const chunk = base64Content.slice(i, i + chunkSize);
+      await sql`
+        INSERT INTO file_chunks (file_id, chunk_index, data)
+        VALUES (${fileId}, ${i / chunkSize}, ${chunk})
+      `;
+    }
 
     return NextResponse.json({ success: true, path: dbPath });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Failed to upload file' }, { status: 500 });
   }
 }

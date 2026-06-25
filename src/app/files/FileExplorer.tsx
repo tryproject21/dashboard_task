@@ -59,11 +59,15 @@ export default function FileExplorer({ initialFiles }: { initialFiles: FileRecor
       const data = await res.json();
       if (data.success) {
         window.location.reload(); 
+      } else {
+        alert('Upload failed: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload failed', error);
+      alert('Upload failed: ' + error.message);
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 

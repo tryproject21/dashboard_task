@@ -17,6 +17,8 @@ export async function getFiles() {
 
 export async function deleteFile(id: string, filePath: string) {
   try {
+    // Delete chunks first
+    await sql`DELETE FROM file_chunks WHERE file_id = ${id}`;
     // Delete from DB
     await sql`DELETE FROM files WHERE id = ${id}`;
     revalidatePath('/files');

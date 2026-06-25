@@ -6,21 +6,28 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ uniq
     const resolvedParams = await params;
     const dbPath = `/api/files/download/${resolvedParams.uniqueName}`;
     
-    const { rows } = await sql`
-      SELECT content, type, name FROM files WHERE path = ${dbPath}
+    const { rows: fileRows } = await sql`
+      SELECT id, type, name FROM files WHERE path = ${dbPath}
     `;
 
-    if (rows.length === 0) {
+    if (fileRows.length === 0) {
       return new NextResponse('File not found', { status: 404 });
     }
 
-    const fileRecord = rows[0];
+    const fileRecord = fileRows[0];
     
-    if (!fileRecord.content) {
+    const { rows: chunks } = await sql`
+      SELECT data FROM file_chunks 
+      WHERE file_id = ${fileRecord.id} 
+      ORDER BY chunk_index ASC
+    `;
+
+    if (chunks.length === 0) {
       return new NextResponse('File content is empty', { status: 404 });
     }
 
-    const buffer = Buffer.from(fileRecord.content, 'base64');
+    const base64Data = chunks.map(c => c.data).join('');
+    const buffer = Buffer.from(base64Data, 'base64');
 
     return new NextResponse(buffer, {
       headers: {
