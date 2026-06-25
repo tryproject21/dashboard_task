@@ -1,8 +1,9 @@
 import { getMeetings } from '@/lib/meetingActions';
+import { getTasks } from '@/lib/taskActions';
 import ScheduleBoard from './ScheduleBoard';
-import { Calendar as CalendarIcon, Plus } from 'lucide-react';
 
 export default async function SchedulePage() {
   const meetings = await getMeetings();
-  return <ScheduleBoard initialMeetings={meetings as any[]} />;
+  const tasks = await getTasks();
+  return <ScheduleBoard initialMeetings={meetings as any[]} initialTasks={tasks as any[]} />;
 }

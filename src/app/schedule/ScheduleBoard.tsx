@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import { addMeeting, deleteMeeting, editMeeting } from '@/lib/meetingActions';
+import { useRouter } from 'next/navigation';
 
 type Meeting = {
   id: string;
@@ -11,8 +12,19 @@ type Meeting = {
   link: string;
 };
 
-export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Meeting[] }) {
+type Task = {
+  id: string;
+  title: string;
+  description: string;
+  deadline: string;
+  status: string;
+  priority: string;
+};
+
+export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { initialMeetings: Meeting[], initialTasks?: Task[] }) {
+  const router = useRouter();
   const [meetings, setMeetings] = useState(initialMeetings);
+  const [tasks, setTasks] = useState(initialTasks);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -38,6 +50,11 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
     setEditingMeeting(null);
     setSelectedDate(dateStr);
     setIsModalOpen(true);
+  }
+
+  const handleTaskClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push('/tasks');
   }
 
   // Calendar logic
@@ -67,6 +84,12 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
         return mDate.getFullYear() === year && mDate.getMonth() === month && mDate.getDate() === d;
       }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+      const dayTasks = tasks.filter(t => {
+        if (!t.deadline) return false;
+        const tDate = new Date(t.deadline);
+        return tDate.getFullYear() === year && tDate.getMonth() === month && tDate.getDate() === d;
+      });
+
       const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
 
       cells.push(
@@ -80,6 +103,12 @@ export default function ScheduleBoard({ initialMeetings }: { initialMeetings: Me
                 <span className="event-time">{new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 <span className="event-title">{m.title}</span>
                 <button type="button" className="delete-btn" onClick={(e) => handleDelete(m.id, e)}><Trash2 size={12}/></button>
+              </div>
+            ))}
+            {dayTasks.map(t => (
+              <div key={`task-${t.id}`} className="event-badge task-badge" onClick={handleTaskClick} style={{ backgroundColor: 'var(--success)', opacity: t.status === 'done' ? 0.6 : 1 }}>
+                <CheckCircle2 size={12} style={{ flexShrink: 0 }} />
+                <span className="event-title" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
               </div>
             ))}
           </div>
