@@ -21,6 +21,7 @@ export default function FileExplorer({ initialFiles }: { initialFiles: FileRecor
   const [isUploading, setIsUploading] = useState(false);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState<FileRecord | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatSize = (bytes: number) => {
@@ -135,7 +136,12 @@ export default function FileExplorer({ initialFiles }: { initialFiles: FileRecor
         )}
 
         {filteredFiles.map(file => (
-          <div key={file.id} className="glass-panel file-card" onClick={() => file.type === 'folder' && navigateToFolder(file.id)} style={{ cursor: file.type === 'folder' ? 'pointer' : 'default' }}>
+          <div 
+            key={file.id} 
+            className="glass-panel file-card" 
+            onClick={() => file.type === 'folder' ? navigateToFolder(file.id) : setPreviewFile(file)} 
+            style={{ cursor: 'pointer' }}
+          >
             <div className="file-icon-container">
               {getFileIcon(file.type, file.name)}
             </div>
@@ -188,6 +194,42 @@ export default function FileExplorer({ initialFiles }: { initialFiles: FileRecor
                 <button type="submit" className="btn btn-primary">Create Folder</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {previewFile && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setPreviewFile(null) }} style={{ zIndex: 1000, padding: '40px' }}>
+          <div className="modal-content preview-modal" style={{ maxWidth: '1000px', height: '90vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+            <div className="flex-between" style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+              <div className="flex-center gap-2">
+                {getFileIcon(previewFile.type, previewFile.name)}
+                <h3 style={{ margin: 0, fontSize: '1.2rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{previewFile.name}</h3>
+              </div>
+              <div className="flex-center gap-2">
+                <a href={previewFile.path} download={previewFile.name} target="_blank" rel="noreferrer" className="btn btn-secondary flex-center gap-2" style={{ textDecoration: 'none' }}>
+                  <Download size={16} /> Download
+                </a>
+                <button className="btn-icon" onClick={() => setPreviewFile(null)}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.02)', position: 'relative' }}>
+              {previewFile.type.startsWith('image/') ? (
+                <img src={previewFile.path} alt={previewFile.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              ) : previewFile.type.includes('pdf') ? (
+                <iframe src={previewFile.path} style={{ width: '100%', height: '100%', border: 'none' }} title="PDF Preview" />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  <FileIcon size={64} style={{ opacity: 0.2, margin: '0 auto 16px' }} />
+                  <p>Preview is not available for this file type.</p>
+                  <a href={previewFile.path} download={previewFile.name} target="_blank" rel="noreferrer" className="btn btn-primary mt-4" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                    <Download size={18} /> Download to View
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

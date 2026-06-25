@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Trash2, CheckCircle2 } from 'lucide-react';
-import { addMeeting, deleteMeeting, editMeeting } from '@/lib/meetingActions';
+import { addMeeting, deleteMeeting, editMeeting, updateMeetingDate } from '@/lib/meetingActions';
 import { useRouter } from 'next/navigation';
 
 type Meeting = {
@@ -57,6 +57,33 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
     router.push('/tasks');
   }
 
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.setData('meeting_id', id);
+  }
+
+  const handleDrop = async (e: React.DragEvent, dateStr: string) => {
+    e.preventDefault();
+    const meetingId = e.dataTransfer.getData('meeting_id');
+    if (!meetingId) return;
+
+    // Optimistic UI update
+    setMeetings(prev => prev.map(m => {
+      if (m.id === meetingId) {
+        const oldDate = new Date(m.date);
+        const [year, month, day] = dateStr.split('-');
+        oldDate.setFullYear(parseInt(year), parseInt(month) - 1, parseInt(day));
+        return { ...m, date: oldDate.toISOString() };
+      }
+      return m;
+    }));
+
+    await updateMeetingDate(meetingId, dateStr);
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  }
+
   // Calendar logic
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -93,13 +120,26 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
       const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
 
       cells.push(
-        <div key={d} className={`calendar-cell ${isToday ? 'today' : ''}`} onClick={() => handleDayClick(dateStr)}>
+        <div 
+          key={d} 
+          className={`calendar-cell ${isToday ? 'today' : ''}`} 
+          onClick={() => handleDayClick(dateStr)}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, dateStr)}
+        >
           <div className="cell-header">
             <span className="day-number">{d}</span>
           </div>
           <div className="cell-events">
             {dayMeetings.map(m => (
-              <div key={m.id} className="event-badge" onClick={(e) => handleEdit(m, e)} style={{ backgroundColor: '#1a73e8', color: 'white', border: 'none' }}>
+              <div 
+                key={m.id} 
+                className="event-badge" 
+                onClick={(e) => handleEdit(m, e)} 
+                draggable
+                onDragStart={(e) => handleDragStart(e, m.id)}
+                style={{ backgroundColor: '#1a73e8', color: 'white', border: 'none' }}
+              >
                 <span className="event-time">{new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 <span className="event-title">{m.title}</span>
                 <button type="button" className="delete-btn" onClick={(e) => handleDelete(m.id, e)}><Trash2 size={12}/></button>
