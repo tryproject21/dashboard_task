@@ -366,12 +366,15 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           <span className="gcal-month-title">{getTitle()}</span>
         </div>
         <div className="gcal-topbar-right">
-          {/* View switcher */}
-          <div className="gcal-view-switcher">
-            <button className={`gcal-view-btn ${viewMode === 'day' ? 'active' : ''}`} onClick={() => setViewMode('day')}>Day</button>
-            <button className={`gcal-view-btn ${viewMode === 'month' ? 'active' : ''}`} onClick={() => setViewMode('month')}>Month</button>
-            <button className={`gcal-view-btn ${viewMode === 'year' ? 'active' : ''}`} onClick={() => setViewMode('year')}>Year</button>
-          </div>
+          <select
+            className="gcal-view-select"
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value as ViewMode)}
+          >
+            <option value="day">Day</option>
+            <option value="month">Month</option>
+            <option value="year">Year</option>
+          </select>
           <button className="gcal-create-btn" onClick={() => { setEditingMeeting(null); setSelectedDate(''); setIsModalOpen(true); }}>
             <Plus size={20} strokeWidth={2.5} />
             <span>Create</span>
@@ -510,31 +513,25 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           color: #3c4043;
         }
 
-        /* View Switcher */
-        .gcal-view-switcher {
-          display: flex;
-          border: 1px solid #dadce0;
-          border-radius: 4px;
-          overflow: hidden;
-        }
-        .gcal-view-btn {
-          padding: 6px 16px;
-          font-size: 0.8125rem;
+        /* View Select Dropdown */
+        .gcal-view-select {
+          padding: 6px 32px 6px 12px;
+          font-size: 0.875rem;
           font-weight: 500;
           color: #3c4043;
           background: #fff;
-          border: none;
-          border-right: 1px solid #dadce0;
+          border: 1px solid #dadce0;
+          border-radius: 4px;
           cursor: pointer;
           font-family: inherit;
-          transition: background 0.15s;
+          appearance: none;
+          -webkit-appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%235f6368' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 10px center;
+          outline: none;
         }
-        .gcal-view-btn:last-child { border-right: none; }
-        .gcal-view-btn:hover { background: #f1f3f4; }
-        .gcal-view-btn.active {
-          background: #e8f0fe;
-          color: #1a73e8;
-        }
+        .gcal-view-select:hover { background-color: #f1f3f4; }
 
         /* Create Button */
         .gcal-create-btn {
@@ -897,10 +894,8 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         :global([data-theme='dark']) .gcal-nav-btn { color: #e8eaed; }
         :global([data-theme='dark']) .gcal-nav-btn:hover { background: #303134; }
         :global([data-theme='dark']) .gcal-month-title { color: #e8eaed; }
-        :global([data-theme='dark']) .gcal-view-switcher { border-color: #5f6368; }
-        :global([data-theme='dark']) .gcal-view-btn { background: #202124; color: #e8eaed; border-color: #5f6368; }
-        :global([data-theme='dark']) .gcal-view-btn:hover { background: #303134; }
-        :global([data-theme='dark']) .gcal-view-btn.active { background: #394457; color: #8ab4f8; }
+        :global([data-theme='dark']) .gcal-view-select { background: #202124; color: #e8eaed; border-color: #5f6368; }
+        :global([data-theme='dark']) .gcal-view-select:hover { background: #303134; }
         :global([data-theme='dark']) .gcal-create-btn { background: #202124; color: #e8eaed; border-color: #5f6368; }
         :global([data-theme='dark']) .gcal-create-btn:hover { background: #303134; }
         :global([data-theme='dark']) .gcal-grid { border-color: #5f6368; }
