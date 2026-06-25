@@ -13,12 +13,12 @@ export async function initDb() {
         deadline TEXT,
         "completedAt" TIMESTAMP,
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      
-      -- Attempt to add columns if table already exists
-      ALTER TABLE tasks ADD COLUMN IF NOT EXISTS description TEXT;
-      ALTER TABLE tasks ADD COLUMN IF NOT EXISTS "completedAt" TIMESTAMP;
+      )
     `;
+    
+    // Attempt to add columns if table already exists (safe error catching)
+    try { await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS description TEXT`; } catch (e) {}
+    try { await sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS "completedAt" TIMESTAMP`; } catch (e) {}
     
     await sql`
       CREATE TABLE IF NOT EXISTS meetings (
