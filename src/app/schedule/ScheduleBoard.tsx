@@ -351,6 +351,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           flex-direction: column;
           position: relative;
           transition: background-color 0.2s ease;
+          min-width: 0; /* CRITICAL: prevents grid item from expanding past 1fr */
         }
 
         .calendar-cell:not(.empty):hover {
@@ -405,6 +406,8 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           overflow-x: hidden; 
           scrollbar-width: none; 
           padding-right: 2px;
+          min-width: 0;
+          width: 100%;
         }
         
         .cell-events::-webkit-scrollbar {
