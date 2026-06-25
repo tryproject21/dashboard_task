@@ -123,7 +123,7 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         return tDate.getFullYear() === year && tDate.getMonth() === month && tDate.getDate() === d;
       });
 
-      const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+              const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
 
       cells.push(
         <div 
@@ -137,30 +137,27 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
             <span className="day-number">{d}</span>
           </div>
           <div className="cell-events">
-            {dayMeetings.map(m => (
+            {dayMeetings.map(m => {
+              const dateObj = new Date(m.date);
+              const timeString = dateObj.toLocaleTimeString([], {hour: 'numeric', minute: dateObj.getMinutes() === 0 ? undefined : '2-digit'}).toLowerCase().replace(' ', '');
+              return (
               <div 
                 key={m.id} 
-                className="event-badge" 
+                className="event-badge meeting-badge" 
                 onClick={(e) => handleMeetingClick(m, e)} 
                 draggable
                 onDragStart={(e) => handleDragStart(e, m.id)}
-                style={{ backgroundColor: '#1a73e8', color: 'white', border: 'none' }}
               >
-                <span className="event-time">{new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                <div className="event-dot" style={{ backgroundColor: '#1a73e8' }}></div>
+                <span className="event-time">{timeString}</span>
                 <span className="event-title">&nbsp;{m.title}</span>
                 <button type="button" className="delete-btn" onClick={(e) => handleDelete(m.id, e)}><Trash2 size={12}/></button>
               </div>
-            ))}
+            )})}
             {dayTasks.map(t => {
-              let bgColor = '#34a853'; // low -> green
-              let textColor = '#ffffff';
-              
-              if (t.priority === 'high') {
-                bgColor = '#ea4335'; // red
-              } else if (t.priority === 'medium') {
-                bgColor = '#fbbc04'; // yellow
-                textColor = '#000000'; // black text for yellow bg
-              }
+              let baseColor = '#0f9d58'; // default green
+              if (t.priority === 'high') baseColor = '#d93025'; // red
+              else if (t.priority === 'medium') baseColor = '#f29900'; // yellow
 
               return (
                 <div 
@@ -168,12 +165,13 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
                   className="event-badge task-badge" 
                   onClick={handleTaskClick} 
                   style={{ 
-                    backgroundColor: bgColor, 
-                    color: textColor,
+                    backgroundColor: `${baseColor}20`, // 20% opacity
+                    borderLeft: `3px solid ${baseColor}`,
+                    color: '#3c4043',
                     opacity: t.status === 'done' ? 0.6 : 1 
                   }}
                 >
-                  <CheckCircle2 size={12} style={{ flexShrink: 0 }} />
+                  <CheckCircle2 size={12} color={baseColor} style={{ flexShrink: 0 }} />
                   <span className="event-title" style={{ textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>
                     {t.title}
                   </span>
@@ -204,13 +202,15 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         </div>
       </div>
 
-      <div className="glass-panel calendar-container">
-        <div className="calendar-header flex-between mb-4">
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{monthNames[month]} {year}</h2>
+      <div className="calendar-container">
+        <div className="calendar-header flex-between">
+          <h2 style={{ fontSize: '1.375rem', fontWeight: 400, color: '#3c4043', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {monthNames[month]} {year}
+          </h2>
           <div className="flex-center gap-2">
-            <button className="btn-icon" onClick={prevMonth}><ChevronLeft size={24} /></button>
-            <button className="btn btn-secondary" style={{ padding: '6px 12px' }} onClick={() => setCurrentMonth(new Date())}>Today</button>
-            <button className="btn-icon" onClick={nextMonth}><ChevronRight size={24} /></button>
+            <button className="btn-icon" onClick={prevMonth}><ChevronLeft size={20} /></button>
+            <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.875rem' }} onClick={() => setCurrentMonth(new Date())}>Today</button>
+            <button className="btn-icon" onClick={nextMonth}><ChevronRight size={20} /></button>
           </div>
         </div>
         
@@ -290,34 +290,22 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
 
       <style jsx>{`
         .calendar-container {
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(10px);
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          background: #ffffff;
+          border-radius: 8px;
+          border: 1px solid #dadce0;
           overflow: hidden;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-          font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+          font-family: 'Google Sans', 'Roboto', 'Inter', system-ui, sans-serif;
           display: flex;
           flex-direction: column;
           height: calc(100vh - 180px); 
           min-height: 600px;
-          transition: all 0.3s ease;
-        }
-        :global([data-theme='light']) .calendar-container {
-          background: #ffffff;
-          border-color: rgba(0,0,0,0.05);
-          box-shadow: 0 8px 32px rgba(0,0,0,0.04);
         }
 
         .calendar-header {
-          padding: 20px 24px;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
+          padding: 12px 24px;
+          border-bottom: 1px solid #dadce0;
           flex-shrink: 0;
-          background: rgba(0,0,0,0.1);
-        }
-        :global([data-theme='light']) .calendar-header {
-          border-bottom-color: rgba(0,0,0,0.05);
-          background: rgba(248,250,252,0.8);
+          background: #ffffff;
         }
 
         .calendar-grid {
@@ -325,82 +313,72 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           grid-template-columns: repeat(7, 1fr);
           grid-template-rows: auto repeat(auto-fill, minmax(80px, 1fr)); 
           flex: 1;
-          background: rgba(255,255,255,0.05);
+          background: #dadce0;
           gap: 1px; 
-        }
-        :global([data-theme='light']) .calendar-grid {
-          background: rgba(0,0,0,0.05);
         }
 
         .calendar-day-header {
           text-align: center;
-          font-weight: 600;
-          color: var(--text-secondary);
-          padding: 12px 0 8px 0;
-          font-size: 0.75rem;
+          font-weight: 500;
+          color: #70757a;
+          padding: 8px 0 4px 0;
+          font-size: 0.6875rem;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
-          background: var(--bg-secondary);
+          letter-spacing: 0.8px;
+          background: #ffffff;
         }
 
         .calendar-cell {
-          background: var(--bg-secondary);
-          padding: 8px;
+          background: #ffffff;
+          padding: 4px;
           cursor: pointer;
           display: flex;
           flex-direction: column;
           position: relative;
-          transition: background-color 0.2s ease;
-          min-width: 0; /* CRITICAL: prevents grid item from expanding past 1fr */
+          min-width: 0; 
         }
 
         .calendar-cell:not(.empty):hover {
-          background: rgba(255, 255, 255, 0.02);
-        }
-        :global([data-theme='light']) .calendar-cell:not(.empty):hover {
-          background: rgba(0, 0, 0, 0.01);
+          background: #f1f3f4;
         }
 
         .calendar-cell.empty {
-          background: var(--bg-primary); 
-          opacity: 0.4;
+          background: #f8f9fa; 
           cursor: default;
         }
 
         .cell-header {
-          text-align: right; 
-          margin-bottom: 8px;
+          text-align: center; 
+          margin-bottom: 4px;
+          margin-top: 2px;
         }
 
         .day-number {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 28px;
-          height: 28px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
-          font-size: 0.85rem;
-          font-weight: 500;
-          color: var(--text-primary);
-          transition: all 0.2s ease;
+          font-size: 0.75rem;
+          font-weight: 400;
+          color: #3c4043;
         }
 
         .calendar-cell.today .day-number {
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          background: #1a73e8;
           color: white;
-          font-weight: 600;
-          box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+          font-weight: 500;
         }
 
         .calendar-cell:not(.today):not(.empty):hover .day-number {
-          background: rgba(139, 92, 246, 0.1);
-          color: #8b5cf6;
+          background: #f1f3f4;
         }
 
         .cell-events {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 2px;
           flex: 1;
           overflow-y: auto;
           overflow-x: hidden; 
@@ -415,33 +393,51 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
         }
 
         .event-badge {
-          padding: 4px 8px;
-          border-radius: 6px;
+          padding: 2px 6px;
+          border-radius: 4px;
           font-size: 0.75rem;
           display: flex;
           align-items: center;
-          gap: 6px;
-          font-weight: 500;
-          line-height: 1.4;
-          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+          gap: 4px;
+          font-weight: 400;
+          line-height: 1.2;
           border: none;
           max-width: 100%; 
           overflow: hidden; 
           position: relative;
+          color: #3c4043;
         }
 
-        .event-badge:hover {
-          transform: translateY(-1px) scale(1.02);
+        .meeting-badge {
+          background-color: transparent;
+        }
+
+        .meeting-badge:hover {
+          background-color: rgba(26, 115, 232, 0.08);
           cursor: pointer;
-          z-index: 10;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .task-badge {
+          font-weight: 500;
+        }
+        
+        .task-badge:hover {
+          filter: brightness(0.95);
+          cursor: pointer;
+        }
+
+        .event-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
         }
 
         .event-time {
-          font-weight: 700;
-          opacity: 0.85;
+          font-weight: 400;
+          color: #3c4043;
           white-space: nowrap;
-          font-size: 0.7rem;
+          font-size: 0.75rem;
           flex-shrink: 0; 
         }
 
@@ -451,31 +447,74 @@ export default function ScheduleBoard({ initialMeetings, initialTasks = [] }: { 
           white-space: nowrap;
           flex: 1;
           min-width: 0; 
+          font-weight: 500;
         }
 
         .delete-btn {
-          background: rgba(0,0,0,0.2);
+          background: transparent;
           border: none;
-          color: white;
+          color: #5f6368;
           opacity: 0;
           cursor: pointer;
-          padding: 4px;
+          padding: 2px;
           display: flex;
           align-items: center;
           justify-content: center;
           border-radius: 4px;
-          transition: all 0.2s;
+          transition: background-color 0.2s;
           position: absolute;
-          right: 4px;
+          right: 2px;
+          background-color: #f1f3f4;
         }
 
         .delete-btn:hover {
-          background: rgba(255, 68, 68, 0.9);
-          transform: scale(1.1);
+          color: #d93025;
+          background-color: #e8eaed;
         }
         
         .event-badge:hover .delete-btn {
           opacity: 1;
+        }
+
+        /* Dark mode overrides, if the app still supports it */
+        :global([data-theme='dark']) .calendar-container {
+          background: #202124;
+          border-color: #5f6368;
+        }
+        :global([data-theme='dark']) .calendar-header {
+          background: #202124;
+          border-color: #5f6368;
+          color: #e8eaed !important;
+        }
+        :global([data-theme='dark']) .calendar-header h2 {
+          color: #e8eaed !important;
+        }
+        :global([data-theme='dark']) .calendar-grid {
+          background: #5f6368;
+        }
+        :global([data-theme='dark']) .calendar-day-header {
+          background: #202124;
+          color: #9aa0a6;
+        }
+        :global([data-theme='dark']) .calendar-cell {
+          background: #202124;
+        }
+        :global([data-theme='dark']) .calendar-cell:not(.empty):hover {
+          background: #303134;
+        }
+        :global([data-theme='dark']) .calendar-cell.empty {
+          background: #171717;
+        }
+        :global([data-theme='dark']) .day-number {
+          color: #e8eaed;
+        }
+        :global([data-theme='dark']) .event-time,
+        :global([data-theme='dark']) .event-title,
+        :global([data-theme='dark']) .event-badge {
+          color: #e8eaed !important;
+        }
+        :global([data-theme='dark']) .meeting-badge:hover {
+          background-color: rgba(255, 255, 255, 0.08);
         }
       `}</style>
     </div>
